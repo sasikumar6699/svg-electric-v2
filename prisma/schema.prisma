@@ -1,0 +1,320 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  ADMIN
+  SALES_USER
+}
+
+enum InputType {
+  DROPDOWN
+  SEARCHABLE_DROPDOWN
+  NUMBER
+  TEXT
+  BOOLEAN
+  MULTI_SELECT
+}
+
+enum EstimationStatus {
+  DRAFT
+  PENDING_APPROVAL
+  REVISION_REQUESTED
+  APPROVED
+  REJECTED
+  FINALIZED
+  PDF_GENERATED
+  CANCELLED
+}
+
+model User {
+  id                  String        @id @default(uuid())
+  email               String        @unique
+  passwordHash        String
+  name                String
+  role                Role          @default(SALES_USER)
+  phone               String?
+  active              Boolean       @default(true)
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  estimations         Estimation[]  @relation("CreatedEstimations")
+  approvedEstimations Estimation[]  @relation("ApprovedEstimations")
+  auditLogs           AuditLog[]
+}
+
+model CompanySettings {
+  id                 String   @id @default("default")
+  companyName        String   @default("SVG Electric & Control Products")
+  tagline            String?  @default("Control Panels, Automation & Switchgear Specialists")
+  address            String   @default("SF No. 342/1, Trichy Road, Singanallur, Coimbatore - 641005, Tamil Nadu, India")
+  phone              String   @default("+91 94432 55678 / +91 422 2578901")
+  email              String   @default("sales@svgelectric.com")
+  website            String   @default("https://svgelectric.com")
+  gstin              String   @default("33AAAFS1234F1ZP")
+  logoUrl            String?
+  currencySymbol     String   @default("₹")
+  currencyCode       String   @default("INR")
+  gstEnabled         Boolean  @default(true)
+  defaultGSTRate     Float    @default(18.0)
+  defaultCGSTRate    Float    @default(9.0)
+  defaultSGSTRate    Float    @default(9.0)
+  defaultIGSTRate    Float    @default(18.0)
+  estimationPrefix   String   @default("EST-")
+  estimationNextNum  Int      @default(1001)
+  yearBasedNumbering Boolean  @default(true)
+  termsAndConditions String   @db.Text
+  bankDetails        String?  @db.Text
+  updatedAt          DateTime @updatedAt
+}
+
+model ProductCategory {
+  id           String    @id @default(uuid())
+  code         String    @unique
+  name         String
+  description  String?
+  active       Boolean   @default(true)
+  displayOrder Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  products     Product[]
+}
+
+model Product {
+  id              String                 @id @default(uuid())
+  productCode     String                 @unique
+  name            String
+  basePrice       Float                  @default(0.0)
+  categoryId      String
+  category        ProductCategory        @relation(fields: [categoryId], references: [id])
+  description     String?
+  active          Boolean                @default(true)
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+
+  productSpecs    ProductSpecification[]
+  pricingRules    PricingRule[]
+  estimationItems EstimationItem[]
+
+  @@index([productCode])
+  @@index([categoryId])
+}
+
+model Specification {
+  id           String                 @id @default(uuid())
+  code         String                 @unique
+  name         String
+  inputType    InputType              @default(DROPDOWN)
+  unit         String?
+  description  String?
+  displayOrder Int                    @default(0)
+  active       Boolean                @default(true)
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+
+  options      SpecificationOption[]
+  productSpecs ProductSpecification[]
+}
+
+model SpecificationOption {
+  id              String        @id @default(uuid())
+  specificationId String
+  specification   Specification @relation(fields: [specificationId], references: [id], onDelete: Cascade)
+  value           String
+  label           String
+  price           Float         @default(0.0)
+  displayOrder    Int           @default(0)
+  active          Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@unique([specificationId, value])
+  @@index([specificationId])
+}
+
+model ProductSpecification {
+  id              String        @id @default(uuid())
+  productId       String
+  product         Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  specificationId String
+  specification   Specification @relation(fields: [specificationId], references: [id], onDelete: Cascade)
+  isRequired      Boolean       @default(true)
+  defaultValue    String?
+  displayOrder    Int           @default(0)
+  createdAt       DateTime      @default(now())
+
+  @@unique([productId, specificationId])
+  @@index([productId])
+  @@index([specificationId])
+}
+
+model PricingRule {
+  id            String    @id @default(uuid())
+  ruleCode      String    @unique
+  productId     String
+  product       Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  specCriteria  Json
+  criteriaHash  String
+  basePrice     Float
+  effectiveFrom DateTime  @default(now())
+  effectiveTo   DateTime?
+  active        Boolean   @default(true)
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([productId, criteriaHash])
+  @@index([productId, active])
+}
+
+model Customer {
+  id            String       @id @default(uuid())
+  customerName  String
+  companyName   String
+  contactPerson String?
+  phone         String
+  email         String?
+  address       String
+  gstin         String?
+  state         String?      @default("Tamil Nadu")
+  notes         String?
+  active        Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  estimations   Estimation[]
+
+  @@index([companyName])
+  @@index([phone])
+}
+
+model Estimation {
+  id               String           @id @default(uuid())
+  estimationNumber String           @unique
+  date             DateTime         @default(now())
+  validityDays     Int              @default(30)
+  status           EstimationStatus @default(DRAFT)
+
+  customerId       String?
+  customer         Customer?        @relation(fields: [customerId], references: [id])
+
+  customerName     String
+  companyName      String
+  contactPerson    String?
+  phone            String
+  email            String?
+  address          String
+  gstin            String?
+  state            String?
+  referenceNumber  String?
+
+  subtotal           Float            @default(0.0)
+  discountPercent    Float            @default(0.0)
+  discountAmount     Float            @default(0.0)
+
+  // Installation & Commissioning Charges
+  installationType   String           @default("PERCENTAGE") // "PERCENTAGE" | "FIXED" | "NONE"
+  installationRate   Float            @default(0.0)
+  installationAmount Float            @default(0.0)
+
+  // Freight & Transportation Charges
+  freightType        String           @default("PERCENTAGE") // "PERCENTAGE" | "FIXED" | "NONE"
+  freightRate        Float            @default(0.0)
+  freightAmount      Float            @default(0.0)
+
+  taxableAmount      Float            @default(0.0)
+  taxType          String           @default("INTRA_STATE")
+  cgstRate         Float            @default(9.0)
+  cgstAmount       Float            @default(0.0)
+  sgstRate         Float            @default(9.0)
+  sgstAmount       Float            @default(0.0)
+  igstRate         Float            @default(18.0)
+  igstAmount       Float            @default(0.0)
+  totalTaxAmount   Float            @default(0.0)
+  grandTotal       Float            @default(0.0)
+  amountInWords    String?
+
+  remarks          String?
+  termsConditions  String?          @db.Text
+
+  createdById      String
+  createdBy        User             @relation("CreatedEstimations", fields: [createdById], references: [id])
+  approvedById     String?
+  approvedBy       User?            @relation("ApprovedEstimations", fields: [approvedById], references: [id])
+  approvedAt       DateTime?
+  approvalRemarks  String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  items            EstimationItem[]
+  auditLogs        AuditLog[]
+
+  @@index([estimationNumber])
+  @@index([status])
+  @@index([date])
+  @@index([createdById])
+  @@index([approvedById])
+}
+
+model EstimationItem {
+  id                     String                        @id @default(uuid())
+  estimationId           String
+  estimation             Estimation                    @relation(fields: [estimationId], references: [id], onDelete: Cascade)
+  productId              String
+  product                Product                       @relation(fields: [productId], references: [id])
+
+  productCodeSnapshot    String
+  productNameSnapshot    String
+  categorySnapshot       String
+
+  quantity               Int                           @default(1)
+  unitPrice              Float
+  lineTotal              Float
+  priceRuleId            String?
+  isManualPrice          Boolean                       @default(false)
+
+  specificationsSnapshot Json
+
+  createdAt              DateTime                      @default(now())
+
+  itemSpecs              EstimationItemSpecification[]
+
+  @@index([estimationId])
+  @@index([productId])
+}
+
+model EstimationItemSpecification {
+  id               String         @id @default(uuid())
+  estimationItemId String
+  estimationItem   EstimationItem @relation(fields: [estimationItemId], references: [id], onDelete: Cascade)
+  specCode         String
+  specName         String
+  optionValue      String
+  optionLabel      String
+  price            Float          @default(0.0)
+}
+
+model AuditLog {
+  id           String      @id @default(uuid())
+  userId       String?
+  user         User?       @relation(fields: [userId], references: [id])
+  action       String
+  entity       String
+  entityId     String?
+  details      Json?
+  ipAddress    String?
+  createdAt    DateTime    @default(now())
+
+  estimationId String?
+  estimation   Estimation? @relation(fields: [estimationId], references: [id])
+
+  @@index([entity, entityId])
+  @@index([userId])
+  @@index([createdAt])
+}

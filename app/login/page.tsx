@@ -62,8 +62,12 @@ export default function LoginPage() {
       <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden relative z-10">
         {/* Header Branding Banner */}
         <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 p-6 text-white text-center relative border-b border-slate-800">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-tr from-brand-600 to-electric-cyan text-white mb-3 shadow-lg shadow-brand-500/30">
-            <Zap className="w-6 h-6 fill-current" />
+          <div className="inline-flex items-center justify-center py-2 px-3.5 rounded-xl bg-white shadow-lg border border-slate-700/50 mb-3">
+            <img
+              src="/logo.jpg"
+              alt="ElectCare - Feel The Excellence"
+              className="h-9 w-auto max-w-[130px] object-contain block"
+            />
           </div>
           <h1 className="text-xl font-bold tracking-tight">SVG ELECTRIC</h1>
           <p className="text-xs text-brand-300 font-mono tracking-wider mt-0.5">

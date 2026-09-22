@@ -10,3 +10,4 @@ tsconfig.tsbuildinfo
 .DS_Store
 coverage/
 dist/
+node_modules

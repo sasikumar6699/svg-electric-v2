@@ -24,7 +24,7 @@ export const Navbar: React.FC<NavbarProps> = ({ user }) => {
   };
 
   return (
-    <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shadow-sm flex-shrink-0">
+    <header className="h-20 bg-white border-b border-slate-200 px-6 flex items-center justify-between shadow-sm flex-shrink-0">
       <div className="flex items-center gap-3">
         <span className="text-xs font-mono text-slate-400 hidden sm:inline">SVG ELECTRIC & CONTROL PRODUCTS</span>
         <span className="text-slate-300 hidden sm:inline">|</span>

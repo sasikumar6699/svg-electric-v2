@@ -16,7 +16,6 @@ import {
   Settings,
   History,
   FileUp,
-  Zap,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -45,20 +44,36 @@ export const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {
   ];
 
   return (
-    <aside className="w-64 bg-slate-900 text-slate-300 flex flex-col flex-shrink-0 border-r border-slate-800">
-      {/* Brand Header */}
-      <div className="h-16 flex items-center gap-3 px-5 border-b border-slate-800 bg-slate-950/60">
-        <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-brand-600 to-electric-cyan flex items-center justify-center text-white shadow-md shadow-brand-500/20">
-          <Zap className="w-5 h-5 fill-current" />
-        </div>
-        <div className="overflow-hidden">
-          <h1 className="font-bold text-sm tracking-wide text-white truncate">SVG ELECTRIC</h1>
-          <p className="text-[10px] text-slate-400 font-mono uppercase tracking-wider truncate">Estimation System</p>
-        </div>
+    <aside className="w-72 bg-slate-900 text-slate-300 flex flex-col flex-shrink-0 border-r border-slate-800">
+      {/* Brand Header - Left Top Corner Logo Area */}
+      <div className="h-20 px-4 border-b border-slate-800 bg-slate-950 flex items-center justify-between flex-shrink-0">
+        <Link href="/dashboard" className="flex items-center gap-3 w-full group">
+          {/* ElectCare Logo Badge */}
+          <div className="bg-white rounded-xl p-1.5 shadow-sm border border-slate-700/60 flex-shrink-0 flex items-center justify-center overflow-hidden group-hover:border-slate-400 transition-colors">
+            <img
+              src="/logo.jpg"
+              alt="ElectCare - Feel The Excellence"
+              className="h-9 w-auto max-w-[95px] object-contain block"
+            />
+          </div>
+
+          {/* Other Brand Contents - Visible, crisp and aligned */}
+          <div className="min-w-0 flex-1">
+            <h1 className="font-extrabold text-[13px] tracking-wide text-white uppercase font-sans leading-tight whitespace-nowrap">
+              SVG ELECTRIC
+            </h1>
+            <p className="text-[10px] font-semibold text-brand-400 font-mono tracking-wider uppercase leading-tight mt-0.5 whitespace-nowrap">
+              Estimation System
+            </p>
+            <p className="text-[9px] text-slate-400 font-sans tracking-wide leading-none mt-1 whitespace-nowrap">
+              Control Products
+            </p>
+          </div>
+        </Link>
       </div>
 
       {/* Navigation */}
-      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
+      <div className="flex-1 overflow-y-auto px-3.5 py-4 space-y-6">
         {/* Core Sales Section */}
         <div>
           <p className="px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2 font-mono">
@@ -118,7 +133,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {
       </div>
 
       {/* Role Footer */}
-      <div className="p-3 border-t border-slate-800 bg-slate-950/40 text-xs">
+      <div className="p-3.5 border-t border-slate-800 bg-slate-950/40 text-xs">
         <div className="flex items-center justify-between text-[11px] text-slate-400">
           <span>Active Role:</span>
           <span className={`font-mono font-semibold px-2 py-0.5 rounded text-[10px] ${

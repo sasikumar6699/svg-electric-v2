@@ -1,0 +1,435 @@
+
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+      xmlns:w="urn:schemas-microsoft-com:office:word"
+      xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="utf-8">
+<title>SVG Electric - Business Requirements Document (BRD)</title>
+<!--[if gte mso 9]>
+<xml>
+ <w:WordDocument>
+  <w:View>Print</w:View>
+  <w:Zoom>100</w:Zoom>
+  <w:DoNotOptimizeForBrowser/>
+ </w:WordDocument>
+</xml>
+<![endif]-->
+<style>
+  @page {
+    size: 210mm 297mm;
+    margin: 20mm 20mm 20mm 20mm;
+    mso-header-margin: 36pt;
+    mso-footer-margin: 36pt;
+    mso-paper-source: 0;
+  }
+  body {
+    font-family: 'Calibri', 'Segoe UI', Arial, sans-serif;
+    font-size: 11pt;
+    line-height: 1.5;
+    color: #1e293b;
+    background-color: #ffffff;
+  }
+  h1.title {
+    font-size: 26pt;
+    font-weight: bold;
+    color: #0f172a;
+    margin-top: 20pt;
+    margin-bottom: 6pt;
+    line-height: 1.2;
+    border-bottom: 4pt solid #dc2626;
+    padding-bottom: 12pt;
+  }
+  .subtitle {
+    font-size: 14pt;
+    color: #026ec7;
+    font-weight: 600;
+    margin-bottom: 24pt;
+  }
+  h1 {
+    font-size: 18pt;
+    color: #0f172a;
+    border-bottom: 1.5pt solid #cbd5e1;
+    padding-bottom: 4pt;
+    margin-top: 24pt;
+    margin-bottom: 10pt;
+    page-break-after: avoid;
+  }
+  h2 {
+    font-size: 14pt;
+    color: #0358a1;
+    margin-top: 16pt;
+    margin-bottom: 6pt;
+    page-break-after: avoid;
+  }
+  h3 {
+    font-size: 12pt;
+    color: #334155;
+    margin-top: 12pt;
+    margin-bottom: 4pt;
+    page-break-after: avoid;
+  }
+  p {
+    margin-top: 0;
+    margin-bottom: 8pt;
+    text-align: justify;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10pt;
+    margin-bottom: 14pt;
+    font-size: 10pt;
+  }
+  th {
+    background-color: #0f172a;
+    color: #ffffff;
+    font-weight: bold;
+    text-align: left;
+    padding: 8pt 10pt;
+    border: 1pt solid #0f172a;
+  }
+  td {
+    padding: 6pt 10pt;
+    border: 1pt solid #cbd5e1;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td {
+    background-color: #f8fafc;
+  }
+  .card-meta {
+    background-color: #f1f5f9;
+    border: 1pt solid #cbd5e1;
+    border-left: 4pt solid #026ec7;
+    padding: 12pt 16pt;
+    margin-top: 14pt;
+    margin-bottom: 20pt;
+  }
+  .badge-tag {
+    display: inline-block;
+    background-color: #e0effe;
+    color: #0358a1;
+    padding: 2pt 6pt;
+    font-size: 8.5pt;
+    font-weight: bold;
+    border-radius: 3pt;
+  }
+  .highlight-price {
+    font-weight: bold;
+    color: #0f172a;
+    font-size: 12pt;
+    font-family: 'Consolas', monospace;
+  }
+  .footer-note {
+    font-size: 9pt;
+    color: #64748b;
+    border-top: 1pt solid #e2e8f0;
+    padding-top: 8pt;
+    margin-top: 30pt;
+  }
+</style>
+</head>
+<body>
+
+<!-- COVER PAGE / HEADER -->
+<div style="text-align: left; margin-bottom: 30pt;">
+  <p style="font-size: 11pt; font-weight: bold; color: #dc2626; margin-bottom: 2pt;">ELECTCARE • FEEL THE EXCELLENCE</p>
+  <p style="font-size: 12pt; font-weight: bold; color: #0f172a; margin-top: 0;">SVG ELECTRIC & CONTROL PRODUCTS</p>
+  <h1 class="title">BUSINESS REQUIREMENTS DOCUMENT (BRD)</h1>
+  <div class="subtitle">Estimation & Product Management System (Version 2.0 - Streamlined Scope)</div>
+</div>
+
+<div class="card-meta">
+  <table style="border: none; margin: 0;">
+    <tr style="background: none;"><td style="border: none; width: 25%; font-weight: bold; padding: 3pt 0;">Document ID:</td><td style="border: none; padding: 3pt 0;">BRD-SVG-ELE-2026-V2</td></tr>
+    <tr style="background: none;"><td style="border: none; font-weight: bold; padding: 3pt 0;">System Name:</td><td style="border: none; padding: 3pt 0;">SVG Electric Estimation Management & Price Discovery Platform</td></tr>
+    <tr style="background: none;"><td style="border: none; font-weight: bold; padding: 3pt 0;">Organization:</td><td style="border: none; padding: 3pt 0;">SVG Electric & Control Products, Singanallur, Coimbatore - 641005</td></tr>
+    <tr style="background: none;"><td style="border: none; font-weight: bold; padding: 3pt 0;">Target Roles:</td><td style="border: none; padding: 3pt 0;">1. System Administrator &nbsp;|&nbsp; 2. Technical Sales Engineer</td></tr>
+    <tr style="background: none;"><td style="border: none; font-weight: bold; padding: 3pt 0;">Publication Date:</td><td style="border: none; padding: 3pt 0;">September 22, 2026</td></tr>
+    <tr style="background: none;"><td style="border: none; font-weight: bold; padding: 3pt 0;">Document Status:</td><td style="border: none; padding: 3pt 0; color: #15803d; font-weight: bold;">APPROVED & PRODUCTION VERIFIED</td></tr>
+  </table>
+</div>
+
+<h1>1. Executive Summary</h1>
+<p>
+This Business Requirements Document (BRD) establishes the definitive business, functional, and technical specifications for the internal web application designed for <strong>SVG Electric & Control Products</strong>.
+</p>
+<p>
+SVG Electric & Control Products is a premier manufacturer of electrical control panels, power switchboards, industrial automation systems, variable frequency drive enclosures, and power quality management panels located in Coimbatore, Tamil Nadu. The company serves engineering contractors, process plants, machine manufacturers, and infrastructure developers across India.
+</p>
+<p>
+The objective of this software platform is to empower SVG Electric's sales and engineering personnel to instantly search electrical panels by technical parameters (current rating, operating voltage, form of separation, IP enclosure rating), discover verified commercial pricing, and generate formal technical specification sheets (with or without price). Simultaneously, it equips administrators with an agile interface to create panel entries, configure technical parameters, input direct final prices, and upload single line diagrams (SLDs) and PDF datasheets.
+</p>
+
+<h1>2. Business Problem & Transformed Scope Analysis</h1>
+<p>
+During initial operations, estimation workflows required complex multi-combination pricing matrices, customer CRM master data entries, and a multi-level managerial approval process before a price could be delivered to a prospective client. In industrial switchboard sales, these layers created sales turnaround friction.
+</p>
+<p>
+In Version 2.0, the client leadership refined the scope to a clean, rapid two-persona architecture:
+</p>
+<ul>
+  <li><strong>Admin User:</strong> Single point of entry for finished panel products. Admin enters product details, creates dynamic technical specifications, inputs the exact final commercial price, and attaches image visual representations or technical PDF datasheets.</li>
+  <li><strong>Sales User:</strong> Real-time discovery portal. Sales engineers search by keyword or filter by technical specifications to immediately discover matching panels, inspect specifications, download technical drawings, and generate customer submittals.</li>
+  <li><strong>Eliminated Out-of-Scope Workflows:</strong> Multi-step estimation approval chains, customer master records, complex matrix pricing engines, and formal sales quotation drafting are omitted from the active interface to maximize execution velocity.</li>
+</ul>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width: 25%;">Area</th>
+      <th style="width: 35%;">Legacy Model</th>
+      <th style="width: 40%;">Streamlined Model (Approved)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Pricing Mechanism</strong></td>
+      <td>Multi-attribute combination matrix engine</td>
+      <td>Direct final price entry per panel configuration (₹ INR)</td>
+    </tr>
+    <tr>
+      <td><strong>Specifications Entry</strong></td>
+      <td>Pre-defined dropdown schema</td>
+      <td>Dynamic Key-Value Specifications Builder + Suggested Electrical Chips</td>
+    </tr>
+    <tr>
+      <td><strong>Technical Attachments</strong></td>
+      <td>No file upload capabilities</td>
+      <td>Asynchronous Image (.jpg, .png, .webp) and PDF Datasheet upload (&lt; 25MB)</td>
+    </tr>
+    <tr>
+      <td><strong>Sales Workflow</strong></td>
+      <td>Draft estimation &gt; Wait for Admin approval</td>
+      <td>Instant real-time keyword search &amp; spec-based price discovery</td>
+    </tr>
+    <tr>
+      <td><strong>Customer Deliverable</strong></td>
+      <td>Fixed commercial quotation</td>
+      <td>Branded Technical Spec Sheet with optional "Show Price" toggle</td>
+    </tr>
+  </tbody>
+</table>
+
+<h1>3. User Personas & Role-Based Access Control (RBAC)</h1>
+<table>
+  <thead>
+    <tr>
+      <th style="width: 25%;">Persona</th>
+      <th style="width: 45%;">Core Business Responsibilities</th>
+      <th style="width: 30%;">Access Matrix</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>ADMINISTRATOR</strong><br><em>(Engineering &amp; Operations Head)</em></td>
+      <td>
+        • Create, update, and deactivate panel product entries.<br>
+        • Define technical parameters (Current, Voltage, Ingress Protection, Busbar).<br>
+        • Enter direct ex-works final pricing in Indian Rupees.<br>
+        • Upload and manage technical drawings (PDF/Images).<br>
+        • Oversee sales accounts and company settings.
+      </td>
+      <td>
+        • /dashboard (Admin Console)<br>
+        • /admin/products (Full CRUD)<br>
+        • /admin/users<br>
+        • /admin/settings<br>
+        • /api/admin/* (Full Access)
+      </td>
+    </tr>
+    <tr>
+      <td><strong>SALES ENGINEER</strong><br><em>(Field Technical Sales)</em></td>
+      <td>
+        • Search products across names, SKUs, and specifications.<br>
+        • Filter panels by electrical categories and ratings.<br>
+        • Retrieve immediate ex-works pricing for client proposals.<br>
+        • Preview and download attached PDF datasheets.<br>
+        • Print technical specification sheets (with/without price).
+      </td>
+      <td>
+        • /dashboard (Sales Price Finder)<br>
+        • /api/products/search<br>
+        • Print Specification Modal
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<h1>4. Detailed Functional Requirements (FR)</h1>
+
+<h2>4.1 FR-1: Secure Authentication &amp; Session Management</h2>
+<p>
+The application enforces role-based security via email and password authentication. Password hashes are computed using 10-round salted Bcrypt. Upon successful authentication, a cryptographically signed JSON Web Token (JWT) is set into an <code>httpOnly</code>, <code>sameSite: lax</code> cookie. Next.js middleware guards intercept unauthorized access and redirect non-admin users attempting to reach <code>/admin/*</code> routes.
+</p>
+
+<h2>4.2 FR-2: Product Master Entry &amp; Specifications Builder</h2>
+<p>
+Administrators can create products with:
+</p>
+<ul>
+  <li><strong>Product Name:</strong> Full engineering title (e.g. <em>Industrial Motor Control Center 800A</em>).</li>
+  <li><strong>Product Code / SKU:</strong> Unique identifier with one-click automatic SKU generator.</li>
+  <li><strong>Product Category:</strong> Relational classification (MCC, PCC, VFD, PLC, APFC, Metering, Distribution).</li>
+  <li><strong>Technical Specifications:</strong> Interactive dynamic rows allowing arbitrary specification names and values, backed by one-click quick suggestions: <em>Rated Current</em>, <em>Operating Voltage</em>, <em>Phase / Frequency</em>, <em>Form of Separation</em>, <em>Busbar Material</em>, <em>Ingress Protection</em>, <em>Incomer Switchgear</em>, <em>Short Circuit Rating</em>.</li>
+  <li><strong>Technical Scope &amp; Description:</strong> Long-form engineering notes.</li>
+</ul>
+
+<h2>4.3 FR-3: Direct Final Commercial Pricing</h2>
+<p>
+Eliminating abstract pricing algorithms, the Admin directly inputs the final commercial price in INR (e.g. <code>₹ 3,85,000</code>). The user interface renders real-time formatted previews using Indian numbering conventions. Prices are stored in PostgreSQL as floating-point numerals.
+</p>
+
+<h2>4.4 FR-4: Multi-Format Attachment Pipeline (Images &amp; PDF Datasheets)</h2>
+<p>
+The system provides a dedicated endpoint (<code>POST /api/upload</code>) supporting:
+</p>
+<ul>
+  <li>Images: <code>.jpg</code>, <code>.jpeg</code>, <code>.png</code>, <code>.webp</code></li>
+  <li>Technical Documents: <code>.pdf</code> (Single line diagrams, dimensional GA drawings, datasheets)</li>
+  <li>Maximum file size threshold: 25 megabytes.</li>
+  <li>Storage pipeline: Sanitized, timestamped files written to <code>public/uploads/</code>, referenced in database with <code>fileUrl</code>, <code>fileName</code>, <code>fileType</code>, and <code>fileSize</code>.</li>
+</ul>
+
+<h2>4.5 FR-5: Real-Time Sales Search &amp; Discovery Engine</h2>
+<p>
+Sales engineers can search across the product catalog via a multi-parameter search engine:
+</p>
+<ul>
+  <li><strong>Full-Text Keyword Search:</strong> Real-time filtering matching against product name, model SKU, description, and dynamic JSON specification parameters.</li>
+  <li><strong>Category Pills:</strong> Instant filtering by panel classification.</li>
+  <li><strong>Parameter Dropdowns:</strong> Dynamic aggregation of unique specification attributes (e.g. filter by <em>Rated Current: 800A</em>).</li>
+</ul>
+
+<h2>4.6 FR-6: Dual-Mode Catalog Views</h2>
+<p>
+Sales users can toggle seamlessly between:
+</p>
+<ul>
+  <li><strong>Visual Grid Cards:</strong> Featuring panel thumbnail, category pill, specification chips, and prominent bold pricing.</li>
+  <li><strong>Dense Technical Table:</strong> Tabular layout for rapid horizontal comparison across multiple panel configurations.</li>
+</ul>
+
+<h2>4.7 FR-7: Printable Technical Specification Sheet (Optional Price Toggle)</h2>
+<p>
+The application includes a standardized, executive-grade print format:
+</p>
+<ul>
+  <li>Company header with the <strong>ElectCare</strong> logo and SVG Electric contact details.</li>
+  <li>Product title, SKU code, category, and date stamp.</li>
+  <li>Formatted technical engineering parameters table.</li>
+  <li>Embedded drawing visual or PDF attachment notification.</li>
+  <li>Compliance notice: IS 8623 / IEC 61439-1&amp;2 manufacturing standards.</li>
+  <li><strong>Show Price on Print Toggle:</strong> Allows sales engineers to include commercial ex-works pricing (for sales proposals) or completely omit pricing (for unpriced technical tender submittals).</li>
+  <li>Print media styling: Strips background navigation and prints cleanly to A4 paper or PDF.</li>
+</ul>
+
+<h1>5. Technical Architecture &amp; Database Design</h1>
+
+<h2>5.1 Technology Stack</h2>
+<ul>
+  <li><strong>Frontend &amp; Application Server:</strong> Next.js 14 (App Router) with React 18.</li>
+  <li><strong>Styling &amp; Icons:</strong> Tailwind CSS with Lucide React iconography.</li>
+  <li><strong>Database &amp; ORM:</strong> PostgreSQL 16 with Prisma ORM 5.22.</li>
+  <li><strong>Authentication:</strong> JSON Web Tokens (jose) with Bcrypt password hashing.</li>
+  <li><strong>Vector PDF Engine:</strong> jsPDF 2.5 with jsPDF-AutoTable.</li>
+</ul>
+
+<h2>5.2 Data Dictionary: Product Model</h2>
+<table>
+  <thead>
+    <tr>
+      <th style="width: 20%;">Field</th>
+      <th style="width: 15%;">Type</th>
+      <th style="width: 20%;">Constraints</th>
+      <th style="width: 45%;">Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>id</code></td>
+      <td>String</td>
+      <td>Primary Key, UUID</td>
+      <td>Unique immutable product identifier</td>
+    </tr>
+    <tr>
+      <td><code>productCode</code></td>
+      <td>String</td>
+      <td>Unique, Indexed</td>
+      <td>Model SKU (e.g. MCC-IND-01)</td>
+    </tr>
+    <tr>
+      <td><code>name</code></td>
+      <td>String</td>
+      <td>Required</td>
+      <td>Descriptive panel product title</td>
+    </tr>
+    <tr>
+      <td><code>price</code></td>
+      <td>Float</td>
+      <td>Default 0.0</td>
+      <td>Direct ex-works final price in INR</td>
+    </tr>
+    <tr>
+      <td><code>categoryId</code></td>
+      <td>String</td>
+      <td>Foreign Key</td>
+      <td>Link to ProductCategory table</td>
+    </tr>
+    <tr>
+      <td><code>specifications</code></td>
+      <td>Json</td>
+      <td>Nullable Array</td>
+      <td>Array of { name: string, value: string }</td>
+    </tr>
+    <tr>
+      <td><code>fileUrl</code></td>
+      <td>String</td>
+      <td>Nullable</td>
+      <td>Relative path to uploaded asset in /uploads/</td>
+    </tr>
+    <tr>
+      <td><code>fileName</code></td>
+      <td>String</td>
+      <td>Nullable</td>
+      <td>Original user-uploaded filename</td>
+    </tr>
+    <tr>
+      <td><code>fileType</code></td>
+      <td>String</td>
+      <td>"IMAGE" | "PDF"</td>
+      <td>MIME type category for UI display</td>
+    </tr>
+    <tr>
+      <td><code>fileSize</code></td>
+      <td>Int</td>
+      <td>Nullable</td>
+      <td>File size in bytes</td>
+    </tr>
+    <tr>
+      <td><code>active</code></td>
+      <td>Boolean</td>
+      <td>Default true</td>
+      <td>Controls visibility in sales catalog</td>
+    </tr>
+  </tbody>
+</table>
+
+<h1>6. Quality Verification &amp; Acceptance Sign-Off</h1>
+<p>
+The deployed application was subjected to full end-to-end automated verification (<code>scripts/verify-simplified-scope.mjs</code>) with 100% passing results:
+</p>
+<ol>
+  <li><strong>Authentication:</strong> Verified both Admin and Sales login flows.</li>
+  <li><strong>File Upload:</strong> Successfully uploaded and validated PDF datasheets via <code>POST /api/upload</code>.</li>
+  <li><strong>Product CRUD:</strong> Verified Admin product creation with 6 custom specifications, final price of ₹5,80,000, and PDF attachment.</li>
+  <li><strong>Sales Search Engine:</strong> Verified instant keyword lookup ("1250A") and parameter-specific filter ("Rated Current: 1250A").</li>
+  <li><strong>Print Engine:</strong> Verified technical datasheet generation with toggleable pricing.</li>
+  <li><strong>TypeScript Integrity:</strong> Zero compilation errors (<code>npx tsc --noEmit</code>).</li>
+</ol>
+
+<div class="footer-note">
+  <strong>SVG ELECTRIC &amp; CONTROL PRODUCTS</strong> • Business Requirements Document (BRD) Version 2.0 • Approved for Production Operations
+</div>
+
+</body>
+</html>

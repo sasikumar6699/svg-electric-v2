@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { LogOut, PlusCircle, UserCheck } from 'lucide-react';
+import { LogOut, PlusCircle, Search, Box } from 'lucide-react';
 import Link from 'next/link';
 
 interface NavbarProps {
@@ -16,6 +16,7 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({ user }) => {
   const router = useRouter();
+  const isAdmin = user.role === 'ADMIN';
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -26,20 +27,34 @@ export const Navbar: React.FC<NavbarProps> = ({ user }) => {
   return (
     <header className="h-20 bg-white border-b border-slate-200 px-6 flex items-center justify-between shadow-sm flex-shrink-0">
       <div className="flex items-center gap-3">
-        <span className="text-xs font-mono text-slate-400 hidden sm:inline">SVG ELECTRIC & CONTROL PRODUCTS</span>
+        <span className="text-xs font-mono text-slate-400 hidden sm:inline">
+          SVG ELECTRIC & CONTROL PRODUCTS
+        </span>
         <span className="text-slate-300 hidden sm:inline">|</span>
-        <h2 className="text-sm font-semibold text-slate-800">Estimation Management Console</h2>
+        <h2 className="text-sm font-bold text-slate-800 tracking-tight">
+          {isAdmin ? 'Product & Technical Management Console' : 'Product Search & Price Discovery'}
+        </h2>
       </div>
 
       <div className="flex items-center gap-4">
-        {/* Quick New Estimation Button */}
-        <Link
-          href="/estimations/new"
-          className="flex items-center gap-1.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold px-3 py-1.5 rounded-md shadow-sm transition-all active:scale-95"
-        >
-          <PlusCircle className="w-4 h-4" />
-          <span>New Estimation</span>
-        </Link>
+        {/* Role-Specific Quick Action Button */}
+        {isAdmin ? (
+          <Link
+            href="/admin/products"
+            className="flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-sm transition-all active:scale-95"
+          >
+            <PlusCircle className="w-4 h-4" />
+            <span>Add Product</span>
+          </Link>
+        ) : (
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-1.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-sm transition-all active:scale-95"
+          >
+            <Search className="w-4 h-4" />
+            <span>Search Products</span>
+          </Link>
+        )}
 
         {/* User Badge */}
         <div className="flex items-center gap-2 pl-3 border-l border-slate-200">
@@ -48,7 +63,9 @@ export const Navbar: React.FC<NavbarProps> = ({ user }) => {
           </div>
           <div className="hidden md:block text-left">
             <p className="text-xs font-semibold text-slate-800 leading-tight">{user.name}</p>
-            <p className="text-[10px] text-slate-500 font-mono">{user.role}</p>
+            <p className="text-[10px] text-slate-500 font-mono">
+              {isAdmin ? 'ADMINISTRATOR' : 'SALES ENGINEER'}
+            </p>
           </div>
         </div>
 
@@ -56,7 +73,7 @@ export const Navbar: React.FC<NavbarProps> = ({ user }) => {
         <button
           onClick={handleLogout}
           title="Sign Out"
-          className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors"
+          className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
         >
           <LogOut className="w-4 h-4" />
         </button>

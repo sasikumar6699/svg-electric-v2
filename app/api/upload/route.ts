@@ -20,15 +20,41 @@ export async function POST(req: NextRequest) {
     const fileNameLower = file.name.toLowerCase();
     const isImage = file.type.startsWith('image/') || /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(fileNameLower);
     const isPdf = file.type === 'application/pdf' || fileNameLower.endsWith('.pdf');
+    const isDoc = /\.(doc|docx|xls|xlsx|txt|rtf|csv)$/i.test(fileNameLower) ||
+      file.type.includes('word') ||
+      file.type.includes('officedocument') ||
+      file.type.includes('excel') ||
+      file.type.includes('text');
 
-    if (!isImage && !isPdf) {
+    if (!isImage && !isPdf && !isDoc) {
       return NextResponse.json(
-        { error: 'Invalid file format. Please upload an image (.jpg, .png, .webp) or PDF document (.pdf)' },
+        { error: 'Invalid file format. Please upload an image (.jpg, .png, .webp) or document (.pdf, .doc, .docx, .xls, .xlsx)' },
         { status: 400 }
       );
     }
 
-    const fileType = isPdf ? 'PDF' : 'IMAGE';
+    const fileType = isPdf ? 'PDF' : isImage ? 'IMAGE' : 'DOCUMENT';
+
+    // Determine accurate MIME type for cloud storage
+    let mimeType = file.type;
+    if (!mimeType || mimeType === 'application/octet-stream') {
+      if (fileNameLower.endsWith('.docx')) {
+        mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      } else if (fileNameLower.endsWith('.doc')) {
+        mimeType = 'application/msword';
+      } else if (fileNameLower.endsWith('.xlsx')) {
+        mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      } else if (fileNameLower.endsWith('.xls')) {
+        mimeType = 'application/vnd.ms-excel';
+      } else if (isPdf) {
+        mimeType = 'application/pdf';
+      } else if (isImage) {
+        mimeType = 'image/jpeg';
+      } else {
+        mimeType = 'application/octet-stream';
+      }
+    }
+
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
@@ -36,7 +62,7 @@ export async function POST(req: NextRequest) {
     const supabaseResult = await uploadToSupabaseStorage(
       buffer,
       file.name,
-      file.type || (isPdf ? 'application/pdf' : 'image/jpeg')
+      mimeType
     );
 
     if (supabaseResult?.publicUrl) {

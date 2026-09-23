@@ -21,15 +21,19 @@ export async function uploadToSupabaseStorage(
   }
 
   try {
-    // 1. Check or auto-create public bucket
-    const { data: buckets } = await supabase.storage.listBuckets();
-    const bucketExists = buckets?.some((b) => b.name === BUCKET_NAME);
+    // 1. Ensure public bucket exists (non-blocking if already created)
+    try {
+      const { data: buckets } = await supabase.storage.listBuckets();
+      const bucketExists = buckets?.some((b) => b.name === BUCKET_NAME);
 
-    if (!bucketExists) {
-      await supabase.storage.createBucket(BUCKET_NAME, {
-        public: true,
-        fileSizeLimit: 25 * 1024 * 1024, // 25MB
-      });
+      if (!bucketExists) {
+        await supabase.storage.createBucket(BUCKET_NAME, {
+          public: true,
+          fileSizeLimit: 25 * 1024 * 1024, // 25MB
+        });
+      }
+    } catch (bErr) {
+      // Ignore listBuckets permission error and attempt upload directly
     }
 
     // 2. Upload file

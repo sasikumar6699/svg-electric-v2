@@ -21,6 +21,10 @@ import {
   PlusCircle,
   HelpCircle,
   Layers,
+  FileDown,
+  FileSpreadsheet,
+  Download,
+  AlertCircle,
 } from 'lucide-react';
 import { formatINR } from '@/lib/utils';
 import { ProductPrintModal } from '@/components/products/ProductPrintModal';
@@ -37,7 +41,7 @@ interface ProductItem {
   price: number;
   basePrice?: number;
   categoryId: string;
-  category?: { id: string; name: string };
+  category?: { id: string; name: string; code?: string };
   description?: string | null;
   specifications?: SpecificationItem[] | null;
   fileUrl?: string | null;
@@ -47,6 +51,15 @@ interface ProductItem {
   active: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+function getCategoryPrefix(category?: { code?: string; name?: string } | null): string {
+  if (!category || !category.code) return 'PANEL-';
+  const code = category.code.toUpperCase().trim();
+  if (code.startsWith('CAT-')) {
+    return code.replace('CAT-', '') + '-';
+  }
+  return code + '-';
 }
 
 const COMMON_SPEC_SUGGESTIONS = [
@@ -75,7 +88,7 @@ export default function AdminProductsPage() {
   const [editingProduct, setEditingProduct] = useState<ProductItem | null>(null);
 
   // Form Fields
-  const [productCode, setProductCode] = useState('');
+  const [codeNumber, setCodeNumber] = useState('');
   const [name, setName] = useState('');
   const [price, setPrice] = useState<number | ''>('');
   const [categoryId, setCategoryId] = useState('');
@@ -90,6 +103,13 @@ export default function AdminProductsPage() {
   const [fileSize, setFileSize] = useState<number | null>(null);
   const [uploadingFile, setUploadingFile] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Bulk Upload Modal State
+  const [isBulkOpen, setIsBulkOpen] = useState(false);
+  const [bulkFile, setBulkFile] = useState<File | null>(null);
+  const [bulkUploading, setBulkUploading] = useState(false);
+  const [bulkResult, setBulkResult] = useState<{ success: boolean; importedCount?: number; errors?: string[] } | null>(null);
+  const bulkFileInputRef = useRef<HTMLInputElement>(null);
 
   // Form feedback
   const [saving, setSaving] = useState(false);
@@ -122,10 +142,11 @@ export default function AdminProductsPage() {
 
   const handleOpenCreate = () => {
     setEditingProduct(null);
-    setProductCode('');
+    const defaultCat = categories[0];
+    setCategoryId(defaultCat?.id || '');
+    setCodeNumber('');
     setName('');
     setPrice('');
-    setCategoryId(categories[0]?.id || '');
     setDescription('');
     setActive(true);
     setSpecifications([
@@ -143,10 +164,16 @@ export default function AdminProductsPage() {
 
   const handleOpenEdit = (p: ProductItem) => {
     setEditingProduct(p);
-    setProductCode(p.productCode);
+    setCategoryId(p.categoryId);
+    const cat = categories.find((c) => c.id === p.categoryId);
+    const pfx = getCategoryPrefix(cat);
+    if (p.productCode.toUpperCase().startsWith(pfx.toUpperCase())) {
+      setCodeNumber(p.productCode.slice(pfx.length));
+    } else {
+      setCodeNumber(p.productCode);
+    }
     setName(p.name);
     setPrice(p.price || p.basePrice || 0);
-    setCategoryId(p.categoryId);
     setDescription(p.description || '');
     setActive(p.active);
     setSpecifications(Array.isArray(p.specifications) ? [...p.specifications] : []);
@@ -221,6 +248,43 @@ export default function AdminProductsPage() {
     setFileSize(null);
   };
 
+  const handleExportProducts = () => {
+    window.open('/api/admin/export?type=products', '_blank');
+  };
+
+  const handleDownloadTemplate = () => {
+    window.open('/api/admin/import/template?type=products', '_blank');
+  };
+
+  const handleBulkUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bulkFile) return;
+
+    setBulkUploading(true);
+    setBulkResult(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', bulkFile);
+      formData.append('type', 'products');
+
+      const res = await fetch('/api/admin/import', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+      setBulkResult(data);
+      if (data.success) {
+        fetchData();
+      }
+    } catch {
+      setBulkResult({ success: false, errors: ['Network error occurred during bulk import.'] });
+    } finally {
+      setBulkUploading(false);
+    }
+  };
+
   const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -230,12 +294,32 @@ export default function AdminProductsPage() {
       const url = '/api/admin/products';
       const method = editingProduct ? 'PUT' : 'POST';
 
+      const currentCategory = categories.find((c) => c.id === categoryId);
+      const pfx = getCategoryPrefix(currentCategory);
+      const trimmedNum = codeNumber.trim().toUpperCase();
+      if (!trimmedNum) {
+        setError('Please enter a product code number or identifier.');
+        setSaving(false);
+        return;
+      }
+      const finalCode = trimmedNum.startsWith(pfx.toUpperCase()) ? trimmedNum : `${pfx}${trimmedNum}`;
+
+      const isDup = products.some(
+        (p) => p.productCode.toUpperCase() === finalCode && p.id !== editingProduct?.id
+      );
+      if (isDup) {
+        setError(`Product code "${finalCode}" already exists. Please choose a different number.`);
+        setSaving(false);
+        return;
+      }
+
       // Clean specs
       const cleanSpecs = specifications
         .map((s) => ({ name: s.name.trim(), value: s.value.trim() }))
         .filter((s) => s.name.length > 0 && s.value.length > 0);
 
       const payload: any = {
+        productCode: finalCode,
         name,
         price: Number(price) || 0,
         categoryId,
@@ -250,9 +334,6 @@ export default function AdminProductsPage() {
 
       if (editingProduct) {
         payload.id = editingProduct.id;
-        payload.productCode = productCode;
-      } else {
-        payload.productCode = productCode;
       }
 
       const res = await fetch(url, {
@@ -301,12 +382,18 @@ export default function AdminProductsPage() {
     }
   };
 
-  const generateSKU = () => {
-    const cat = categories.find((c) => c.id === categoryId);
-    const prefix = cat ? cat.code.replace('CAT-', '') : 'PANEL';
-    const rand = Math.floor(100 + Math.random() * 900);
-    setProductCode(`${prefix}-${rand}`);
-  };
+  const currentCategory = categories.find((c) => c.id === categoryId);
+  const currentPrefix = getCategoryPrefix(currentCategory);
+  const trimmedCode = codeNumber.trim().toUpperCase();
+  const fullProductCode = trimmedCode
+    ? (trimmedCode.startsWith(currentPrefix.toUpperCase()) ? trimmedCode : `${currentPrefix}${trimmedCode}`)
+    : '';
+  const isDuplicateCode = Boolean(
+    fullProductCode &&
+      products.some(
+        (p) => p.productCode.toUpperCase() === fullProductCode && p.id !== editingProduct?.id
+      )
+  );
 
   return (
     <div className="space-y-6 pb-20">
@@ -324,13 +411,49 @@ export default function AdminProductsPage() {
           </p>
         </div>
 
-        <button
-          onClick={handleOpenCreate}
-          className="inline-flex items-center gap-1.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold px-4 py-2.5 rounded-lg shadow-sm transition-all"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add Product Entry</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={handleDownloadTemplate}
+            title="Download formatted Excel template for bulk upload"
+            className="inline-flex items-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-xs font-medium px-3 py-2 rounded-lg shadow-sm transition-all"
+          >
+            <Download className="w-3.5 h-3.5 text-slate-500" />
+            <span>Template (.xlsx)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleExportProducts}
+            title="Export all products with prices and specifications to Excel"
+            className="inline-flex items-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-xs font-medium px-3 py-2 rounded-lg shadow-sm transition-all"
+          >
+            <FileDown className="w-3.5 h-3.5 text-amber-600" />
+            <span>Export Catalog</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setBulkFile(null);
+              setBulkResult(null);
+              setIsBulkOpen(true);
+            }}
+            className="inline-flex items-center gap-1.5 bg-white hover:bg-slate-50 text-brand-700 border border-brand-300 text-xs font-semibold px-3 py-2 rounded-lg shadow-sm transition-all"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-brand-600" />
+            <span>Bulk Upload</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleOpenCreate}
+            className="inline-flex items-center gap-1.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add Product</span>
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -411,6 +534,8 @@ export default function AdminProductsPage() {
                             <img src={p.fileUrl} alt={p.name} className="w-full h-full object-cover" />
                           ) : p.fileUrl && p.fileType === 'PDF' ? (
                             <FileText className="w-5 h-5 text-rose-600" />
+                          ) : p.fileUrl ? (
+                            <FileText className="w-5 h-5 text-blue-600" />
                           ) : (
                             <Box className="w-5 h-5 text-slate-400" />
                           )}
@@ -466,10 +591,12 @@ export default function AdminProductsPage() {
                           >
                             {p.fileType === 'PDF' ? (
                               <FileText className="w-3.5 h-3.5 text-rose-600" />
-                            ) : (
+                            ) : p.fileType === 'IMAGE' ? (
                               <ImageIcon className="w-3.5 h-3.5 text-brand-600" />
+                            ) : (
+                              <FileText className="w-3.5 h-3.5 text-blue-600" />
                             )}
-                            <span>{p.fileType}</span>
+                            <span>{p.fileType === 'IMAGE' ? 'IMG' : p.fileType === 'PDF' ? 'PDF' : 'DOC'}</span>
                             <ExternalLink className="w-2.5 h-2.5 ml-0.5" />
                           </a>
                         ) : (
@@ -583,6 +710,55 @@ export default function AdminProductsPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Product Category <span className="text-rose-500">*</span>
+                    </label>
+                    <select
+                      value={categoryId}
+                      onChange={(e) => setCategoryId(e.target.value)}
+                      required
+                      className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 bg-white focus:ring-2 focus:ring-brand-500 font-medium"
+                    >
+                      {categories.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name} ({getCategoryPrefix(c)})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Product Code <span className="text-rose-500">*</span>
+                    </label>
+                    <div className="flex rounded-lg border border-slate-300 focus-within:ring-2 focus-within:ring-brand-500 focus-within:border-brand-500 overflow-hidden shadow-sm">
+                      <span className="inline-flex items-center px-2.5 bg-slate-100 text-slate-700 font-mono text-xs font-bold border-r border-slate-300 select-none">
+                        {currentPrefix}
+                      </span>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. 101 or 950"
+                        value={codeNumber}
+                        onChange={(e) => setCodeNumber(e.target.value)}
+                        className="flex-1 px-3 py-1.5 text-xs font-mono uppercase focus:outline-none"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between mt-1 text-[10px]">
+                      <span className="text-slate-500 font-mono">
+                        Full Code: <strong className="text-slate-900">{codeNumber.trim() ? fullProductCode : '—'}</strong>
+                      </span>
+                      {isDuplicateCode && codeNumber.trim() ? (
+                        <span className="text-rose-600 font-bold flex items-center gap-0.5">
+                          ⚠️ Code already exists
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
                       Product Name <span className="text-rose-500">*</span>
                     </label>
                     <input
@@ -591,51 +767,8 @@ export default function AdminProductsPage() {
                       placeholder="e.g. Industrial Motor Control Center 800A"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500"
+                      className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 font-medium"
                     />
-                  </div>
-
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <label className="block text-xs font-semibold text-slate-700">
-                        Product Code / SKU <span className="text-rose-500">*</span>
-                      </label>
-                      <button
-                        type="button"
-                        onClick={generateSKU}
-                        className="text-[10px] text-brand-600 hover:underline font-mono"
-                      >
-                        Auto SKU
-                      </button>
-                    </div>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. MCC-IND-800A"
-                      value={productCode}
-                      onChange={(e) => setProductCode(e.target.value)}
-                      className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 font-mono uppercase focus:ring-2 focus:ring-brand-500"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Product Category <span className="text-rose-500">*</span>
-                    </label>
-                    <select
-                      value={categoryId}
-                      onChange={(e) => setCategoryId(e.target.value)}
-                      required
-                      className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 bg-white focus:ring-2 focus:ring-brand-500"
-                    >
-                      {categories.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.name}
-                        </option>
-                      ))}
-                    </select>
                   </div>
 
                   <div>
@@ -756,10 +889,10 @@ export default function AdminProductsPage() {
               <div className="space-y-3">
                 <div>
                   <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 font-mono">
-                    3. Attachment Upload (Image or PDF)
+                    3. Attachment Upload (Image or Document)
                   </h4>
                   <p className="text-[11px] text-slate-500">
-                    Upload panel photo, single line diagram (SLD), GA drawing, or technical PDF datasheet.
+                    Upload panel photo, single line diagram (SLD), GA drawing, Word doc (.docx), or technical PDF datasheet.
                   </p>
                 </div>
 
@@ -769,14 +902,16 @@ export default function AdminProductsPage() {
                       <div className="w-12 h-12 rounded-lg bg-white border border-slate-200 flex items-center justify-center overflow-hidden flex-shrink-0">
                         {fileType === 'IMAGE' ? (
                           <img src={fileUrl} alt="Upload preview" className="w-full h-full object-cover" />
-                        ) : (
+                        ) : fileType === 'PDF' ? (
                           <FileText className="w-6 h-6 text-rose-600" />
+                        ) : (
+                          <FileText className="w-6 h-6 text-blue-600" />
                         )}
                       </div>
                       <div>
                         <p className="text-xs font-semibold text-slate-800 line-clamp-1">{fileName || 'Attachment'}</p>
                         <p className="text-[10px] text-slate-400 font-mono">
-                          Format: {fileType} • {fileSize ? `${Math.round(fileSize / 1024)} KB` : ''}
+                          Format: {fileType === 'IMAGE' ? 'Image' : fileType === 'PDF' ? 'PDF Document' : 'Office Document'} • {fileSize ? `${Math.round(fileSize / 1024)} KB` : ''}
                         </p>
                         <a
                           href={fileUrl}
@@ -804,7 +939,7 @@ export default function AdminProductsPage() {
                       ref={fileInputRef}
                       type="file"
                       id="product-file-upload"
-                      accept=".jpg,.jpeg,.png,.webp,.pdf,image/*,application/pdf"
+                      accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx,.xls,.xlsx,.txt,image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                       onChange={handleFileUpload}
                       className="hidden"
                     />
@@ -818,10 +953,10 @@ export default function AdminProductsPage() {
                         <Upload className="w-6 h-6 text-slate-400" />
                       )}
                       <span className="text-xs font-semibold text-slate-700">
-                        {uploadingFile ? 'Uploading file...' : 'Click to upload Image (.jpg, .png) or PDF (.pdf)'}
+                        {uploadingFile ? 'Uploading file to cloud storage...' : 'Click to upload Image (.jpg, .png) or Document (.pdf, .doc, .docx)'}
                       </span>
                       <span className="text-[10px] text-slate-400">
-                        Maximum file size: 25MB
+                        Maximum file size: 25MB • Persisted on Supabase Cloud Storage
                       </span>
                     </label>
                   </div>
@@ -859,6 +994,143 @@ export default function AdminProductsPage() {
                 >
                   {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   <span>{editingProduct ? 'Update Product' : 'Save Product Entry'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Upload Modal */}
+      {isBulkOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden">
+            {/* Modal Header */}
+            <div className="bg-slate-900 text-white px-6 py-4 flex items-center justify-between border-b border-slate-800">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-brand-600/30 border border-brand-500/40 flex items-center justify-center text-brand-400">
+                  <FileSpreadsheet className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white tracking-wide">
+                    Bulk Upload Products
+                  </h3>
+                  <p className="text-[11px] text-slate-400">
+                    Import multiple panels with prices and specs using an Excel spreadsheet.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsBulkOpen(false)}
+                className="p-1 text-slate-400 hover:text-white rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Form */}
+            <form onSubmit={handleBulkUpload} className="p-6 space-y-4">
+              {/* Template Download Box */}
+              <div className="bg-brand-50 border border-brand-200 rounded-xl p-3.5 flex items-center justify-between">
+                <div>
+                  <h5 className="text-xs font-bold text-brand-900">Need the correct Excel format?</h5>
+                  <p className="text-[11px] text-brand-700 mt-0.5">
+                    Download the pre-formatted template with sample electrical products.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleDownloadTemplate}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors flex-shrink-0"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Template</span>
+                </button>
+              </div>
+
+              {/* File Picker */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Select Excel or CSV File (.xlsx, .xls, .csv)
+                </label>
+                <div className="border-2 border-dashed border-slate-300 rounded-xl p-5 text-center hover:border-brand-400 transition-colors bg-slate-50/50">
+                  <input
+                    ref={bulkFileInputRef}
+                    type="file"
+                    id="bulk-excel-upload"
+                    accept=".xlsx,.xls,.csv"
+                    onChange={(e) => {
+                      setBulkFile(e.target.files?.[0] || null);
+                      setBulkResult(null);
+                    }}
+                    className="hidden"
+                  />
+                  <label
+                    htmlFor="bulk-excel-upload"
+                    className="cursor-pointer flex flex-col items-center justify-center gap-1.5"
+                  >
+                    <Upload className="w-6 h-6 text-brand-600" />
+                    <span className="text-xs font-semibold text-slate-800">
+                      {bulkFile ? bulkFile.name : 'Click to select spreadsheet'}
+                    </span>
+                    <span className="text-[10px] text-slate-500">
+                      {bulkFile
+                        ? `${(bulkFile.size / 1024).toFixed(1)} KB selected`
+                        : 'Supports Microsoft Excel (.xlsx, .xls) and CSV'}
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Results feedback */}
+              {bulkResult && (
+                <div
+                  className={`p-3.5 rounded-xl border text-xs ${
+                    bulkResult.success
+                      ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                      : 'bg-rose-50 border-rose-200 text-rose-800'
+                  }`}
+                >
+                  {bulkResult.success ? (
+                    <div className="flex items-center gap-2 font-semibold">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                      <span>
+                        Successfully imported {bulkResult.importedCount} product{bulkResult.importedCount === 1 ? '' : 's'}!
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1.5 font-bold">
+                        <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0" />
+                        <span>Import encountered errors:</span>
+                      </div>
+                      <ul className="list-disc list-inside space-y-0.5 text-[11px] max-h-32 overflow-y-auto pl-1">
+                        {bulkResult.errors?.map((err, i) => (
+                          <li key={i}>{err}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsBulkOpen(false)}
+                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                >
+                  Close
+                </button>
+                <button
+                  type="submit"
+                  disabled={!bulkFile || bulkUploading}
+                  className="inline-flex items-center gap-2 px-5 py-2 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-lg shadow-sm transition-all disabled:opacity-50"
+                >
+                  {bulkUploading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  <span>{bulkUploading ? 'Importing...' : 'Upload & Import'}</span>
                 </button>
               </div>
             </form>

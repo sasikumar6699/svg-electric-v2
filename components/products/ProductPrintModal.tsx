@@ -141,7 +141,7 @@ export const ProductPrintModal: React.FC<ProductPrintModalProps> = ({
                     {product.category?.name || 'Switchboard / Control Panel'}
                   </span>
                   <span className="text-[10px] font-mono text-slate-500 font-bold">
-                    SKU: {product.productCode}
+                    Code: {product.productCode}
                   </span>
                 </div>
                 <h2 className="text-xl font-bold text-slate-900 tracking-tight">

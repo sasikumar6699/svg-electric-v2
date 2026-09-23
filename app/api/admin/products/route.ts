@@ -104,7 +104,16 @@ export async function PUT(request: Request) {
 
     const updateData: any = {};
     if (data.name !== undefined) updateData.name = data.name.trim();
-    if (data.productCode !== undefined) updateData.productCode = data.productCode.trim().toUpperCase();
+    if (data.productCode !== undefined) {
+      const cleanCode = data.productCode.trim().toUpperCase();
+      const existing = await db.product.findUnique({
+        where: { productCode: cleanCode },
+      });
+      if (existing && existing.id !== data.id) {
+        return NextResponse.json({ error: `Product code "${cleanCode}" already exists on another product.` }, { status: 400 });
+      }
+      updateData.productCode = cleanCode;
+    }
     if (finalPrice !== undefined) {
       updateData.price = finalPrice;
       updateData.basePrice = finalPrice;

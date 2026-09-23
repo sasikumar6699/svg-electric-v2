@@ -2,6 +2,21 @@ import * as XLSX from 'xlsx';
 import { db } from '@/lib/db';
 import { buildCriteriaHash } from '@/lib/pricing/pricing-engine';
 
+function parseSpecsString(specStr: string): Array<{ name: string; value: string }> {
+  if (!specStr) return [];
+  const items: Array<{ name: string; value: string }> = [];
+  const parts = specStr.split('|');
+  for (const part of parts) {
+    const colonIdx = part.indexOf(':');
+    if (colonIdx > 0) {
+      const name = part.substring(0, colonIdx).trim();
+      const value = part.substring(colonIdx + 1).trim();
+      if (name && value) items.push({ name, value });
+    }
+  }
+  return items;
+}
+
 export class ExcelService {
   /**
    * Generates blank/sample Excel templates for bulk data import.
@@ -11,9 +26,34 @@ export class ExcelService {
 
     if (type === 'products') {
       const headers = [
-        ['Product Code', 'Product Name', 'Category Code', 'Description', 'Active (YES/NO)'],
-        ['MCC-DEMO-02', 'High Voltage MCC Panel', 'CAT-MCC', '3.3kV Motor Control Center with Vacuum Contactors', 'YES'],
-        ['PLC-DEMO-02', 'Compact Machine Controller', 'CAT-PLC', 'Compact automation panel for packaging machines', 'YES'],
+        ['Product Code', 'Product Name', 'Category Code', 'Final Price (INR)', 'Technical Specifications', 'Description', 'Active (YES/NO)'],
+        [
+          'MCC-101',
+          'Industrial Motor Control Center 800A',
+          'CAT-MCC',
+          385000,
+          'Rated Current: 800A | Operating Voltage: 415V AC | Phase / Frequency: 3 Phase 4 Wire, 50Hz | Form of Separation: Form 4B | Busbar Material: Copper | Ingress Protection: IP54',
+          'Form 4B compartmentalized MCC with drawout starters and copper busbars',
+          'YES',
+        ],
+        [
+          'PLC-201',
+          'PLC & HMI Automation Control Panel',
+          'CAT-PLC',
+          245000,
+          'Controller Brand: Siemens S7-1200 | HMI Display: 7-inch Color TFT Touch | I/O Count: 32 DI, 24 DO | Operating Voltage: 230V AC / 24V DC | Ingress Protection: IP55',
+          'Dual port Ethernet PLC panel with redundant 24V SMPS and isolated relays',
+          'YES',
+        ],
+        [
+          'ACD-301',
+          '75kW Variable Frequency Drive (VFD Panel)',
+          'CAT-ACD',
+          320000,
+          'Motor Drive Power: 75 kW (100 HP) | Rated Voltage: 415V AC | Ingress Protection: IP54 | Starter: VFD with Auto Bypass | Enclosure: Forced Air Cooled',
+          'Heavy duty VFD drive panel with line chokes and bypass controls',
+          'YES',
+        ],
       ];
       const ws = XLSX.utils.aoa_to_sheet(headers);
       XLSX.utils.book_append_sheet(wb, ws, 'Products Template');
@@ -60,11 +100,27 @@ export class ExcelService {
       const row = rows[i];
       if (!row || row.length === 0 || !row[0]) continue;
 
-      const code = String(row[0]).trim();
+      const code = String(row[0]).trim().toUpperCase();
       const name = String(row[1] || '').trim();
       const catCode = String(row[2] || '').trim().toUpperCase();
-      const description = String(row[3] || '').trim();
-      const activeStr = String(row[4] || 'YES').trim().toUpperCase();
+
+      // Check whether row[3] is price or description (backward compatibility with 5-column format)
+      let price = 0;
+      let specs: Array<{ name: string; value: string }> = [];
+      let description = '';
+      let activeStr = 'YES';
+
+      if (row.length >= 6) {
+        // Full format: Code, Name, Cat, Price, Specs, Description, Active
+        price = parseFloat(String(row[3])) || 0;
+        specs = parseSpecsString(String(row[4] || ''));
+        description = String(row[5] || '').trim();
+        activeStr = String(row[6] || 'YES').trim().toUpperCase();
+      } else {
+        // Legacy 5-column format: Code, Name, Cat, Description, Active
+        description = String(row[3] || '').trim();
+        activeStr = String(row[4] || 'YES').trim().toUpperCase();
+      }
 
       if (!code) {
         errors.push(`Row ${i + 1}: Missing Product Code`);
@@ -83,6 +139,9 @@ export class ExcelService {
         productCode: code,
         name,
         categoryId: catMap.get(catCode)!,
+        price,
+        basePrice: price,
+        specifications: specs,
         description: description || null,
         active: activeStr === 'YES' || activeStr === 'TRUE',
       });
@@ -96,7 +155,15 @@ export class ExcelService {
     for (const p of validProducts) {
       await db.product.upsert({
         where: { productCode: p.productCode },
-        update: { name: p.name, categoryId: p.categoryId, description: p.description, active: p.active },
+        update: {
+          name: p.name,
+          categoryId: p.categoryId,
+          price: p.price,
+          basePrice: p.price,
+          specifications: p.specifications,
+          description: p.description,
+          active: p.active,
+        },
         create: p,
       });
       count++;
@@ -257,6 +324,43 @@ export class ExcelService {
       ]),
     ];
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(ruleRows), 'Pricing Rules');
+
+    return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+  }
+
+  /**
+   * Exports dedicated products catalog with prices, specifications, and attachment links.
+   */
+  static async exportProductsOnly(): Promise<Buffer> {
+    const wb = XLSX.utils.book_new();
+
+    const products = await db.product.findMany({
+      include: { category: true },
+      orderBy: { productCode: 'asc' },
+    });
+
+    const prodRows = [
+      ['Product Code', 'Product Name', 'Category Code', 'Category Name', 'Final Price (INR)', 'Technical Specifications', 'Description', 'Attachment URL', 'Active (YES/NO)'],
+      ...products.map(p => {
+        const specs = Array.isArray(p.specifications)
+          ? (p.specifications as any[]).map(s => `${s.name}: ${s.value}`).join(' | ')
+          : '';
+        return [
+          p.productCode,
+          p.name,
+          p.category.code,
+          p.category.name,
+          p.price || p.basePrice || 0,
+          specs,
+          p.description || '',
+          p.fileUrl || '',
+          p.active ? 'YES' : 'NO',
+        ];
+      }),
+    ];
+
+    const ws = XLSX.utils.aoa_to_sheet(prodRows);
+    XLSX.utils.book_append_sheet(wb, ws, 'Products Catalog');
 
     return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
   }

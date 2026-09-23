@@ -1,17 +1,10 @@
-import { BarChart3, TrendingUp, Users, Box, Calendar, FileSpreadsheet } from 'lucide-react';
-
-export const dynamic = 'force-dynamic';
-
-export default async function ReportsPage() {
-  const [
-    totalEstimations,
-
 import React from 'react';
 import { db } from '@/lib/db';
 import { formatINR } from '@/lib/utils';
 import { BarChart3, TrendingUp, Users, Box, Calendar, FileSpreadsheet } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
+
 export default async function ReportsPage() {
   const [
     totalEstimations,

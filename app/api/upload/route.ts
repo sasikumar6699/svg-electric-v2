@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
+import { uploadToSupabaseStorage } from '@/lib/supabase/client';
 
 export async function POST(req: NextRequest) {
   try {
@@ -27,29 +28,57 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-    await mkdir(uploadDir, { recursive: true });
-
-    // Clean filename and ensure uniqueness
-    const ext = path.extname(file.name);
-    const baseName = path.basename(file.name, ext).replace(/[^a-zA-Z0-9_-]/g, '_');
-    const uniqueFileName = `${Date.now()}-${baseName}${ext}`;
-    const filePath = path.join(uploadDir, uniqueFileName);
-
+    const fileType = isPdf ? 'PDF' : 'IMAGE';
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    await writeFile(filePath, buffer);
 
-    const fileUrl = `/uploads/${uniqueFileName}`;
-    const fileType = isPdf ? 'PDF' : 'IMAGE';
+    // 1. Try Supabase Storage first (for Vercel / Cloud persistence)
+    const supabaseResult = await uploadToSupabaseStorage(
+      buffer,
+      file.name,
+      file.type || (isPdf ? 'application/pdf' : 'image/jpeg')
+    );
 
-    return NextResponse.json({
-      success: true,
-      fileUrl,
-      fileName: file.name,
-      fileType,
-      fileSize: file.size,
-    });
+    if (supabaseResult?.publicUrl) {
+      return NextResponse.json({
+        success: true,
+        fileUrl: supabaseResult.publicUrl,
+        fileName: file.name,
+        fileType,
+        fileSize: file.size,
+        storageProvider: 'supabase',
+      });
+    }
+
+    // 2. Fallback to local filesystem storage (for local dev)
+    try {
+      const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+      await mkdir(uploadDir, { recursive: true });
+
+      const ext = path.extname(file.name);
+      const baseName = path.basename(file.name, ext).replace(/[^a-zA-Z0-9_-]/g, '_');
+      const uniqueFileName = `${Date.now()}-${baseName}${ext}`;
+      const filePath = path.join(uploadDir, uniqueFileName);
+
+      await writeFile(filePath, buffer);
+
+      const fileUrl = `/uploads/${uniqueFileName}`;
+
+      return NextResponse.json({
+        success: true,
+        fileUrl,
+        fileName: file.name,
+        fileType,
+        fileSize: file.size,
+        storageProvider: 'local',
+      });
+    } catch (fsErr: any) {
+      console.error('Local filesystem upload error (e.g. read-only Vercel lambda):', fsErr);
+      return NextResponse.json(
+        { error: 'Storage error. Please configure Supabase Storage credentials.' },
+        { status: 500 }
+      );
+    }
   } catch (error: any) {
     console.error('File upload error:', error);
     return NextResponse.json(

@@ -50,7 +50,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {
             <h1 className="font-extrabold text-[13px] tracking-wide text-white uppercase font-sans leading-tight whitespace-nowrap">
               SVG ELECTRIC
             </h1>
-            <p className="text-[10px] font-semibold text-brand-400 font-mono tracking-wider uppercase leading-tight mt-0.5 whitespace-nowrap">
+            <p className="text-[10px] font-semibold text-blue-400 font-mono tracking-wider uppercase leading-tight mt-0.5 whitespace-nowrap">
               Price & Product Finder
             </p>
             <p className="text-[9px] text-slate-400 font-sans tracking-wide leading-none mt-1 whitespace-nowrap">
@@ -78,7 +78,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {
                     href={item.href}
                     className={`flex items-center gap-3 px-3.5 py-2.5 text-xs font-medium rounded-xl transition-all ${
                       isActive
-                        ? 'bg-brand-600 text-white font-semibold shadow-sm'
+                        ? 'bg-blue-600 text-white font-semibold shadow-md shadow-blue-950/40'
                         : 'text-slate-300 hover:text-white hover:bg-slate-800/70'
                     }`}
                   >
@@ -94,9 +94,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {
         {/* Admin Navigation */}
         {userRole === 'ADMIN' && (
           <div>
-            <p className="px-3 text-[11px] font-semibold text-amber-400 uppercase tracking-wider mb-2 font-mono flex items-center justify-between">
+            <p className="px-3 text-[11px] font-semibold text-blue-400 uppercase tracking-wider mb-2 font-mono flex items-center justify-between">
               <span>Admin Masters</span>
-              <span className="text-[9px] bg-amber-900/40 text-amber-300 px-1.5 py-0.5 rounded border border-amber-800/50 font-bold">
+              <span className="text-[9px] bg-blue-950/60 text-blue-300 px-1.5 py-0.5 rounded border border-blue-800/60 font-bold">
                 ADMIN
               </span>
             </p>
@@ -110,7 +110,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {
                     href={item.href}
                     className={`flex items-center gap-3 px-3.5 py-2.5 text-xs font-medium rounded-xl transition-all ${
                       isActive
-                        ? 'bg-amber-600 text-white font-semibold shadow-sm'
+                        ? 'bg-blue-600 text-white font-semibold shadow-md shadow-blue-950/40'
                         : 'text-slate-300 hover:text-white hover:bg-slate-800/70'
                     }`}
                   >
@@ -131,8 +131,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {
           <span
             className={`font-mono font-semibold px-2 py-0.5 rounded text-[10px] ${
               userRole === 'ADMIN'
-                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                : 'bg-brand-500/20 text-brand-300 border border-brand-500/30'
+                ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                : 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
             }`}
           >
             {userRole === 'ADMIN' ? 'ADMINISTRATOR' : 'SALES USER'}

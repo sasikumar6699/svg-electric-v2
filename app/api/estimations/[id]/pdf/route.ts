@@ -48,8 +48,8 @@ export async function GET(request: Request, { params }: { params: { id: string }
       company: {
         companyName: company?.companyName || 'SVG Electric & Control Products',
         tagline: company?.tagline,
-        address: company?.address || 'Coimbatore, Tamil Nadu',
-        phone: company?.phone || '+91 94432 55678',
+        address: company?.address || '# 1/22 perumal kovil Street, Barur(Po), Pochampalli(Tk), krishnagiri(Dt) - 635201 Tamilnadu, India.',
+        phone: company?.phone || '+91 88707 19804 / +91 63827 92780',
         email: company?.email || 'sales@svgelectric.com',
         website: company?.website || 'https://svgelectric.com',
         gstin: company?.gstin || '33AAAFS1234F1ZP',

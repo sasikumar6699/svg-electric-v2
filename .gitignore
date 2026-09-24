@@ -1,4 +1,4 @@
-﻿node_modules/
+node_modules/
 .next/
 .env
 .env.local
@@ -11,3 +11,4 @@ tsconfig.tsbuildinfo
 coverage/
 dist/
 node_modules
+public/uploads/

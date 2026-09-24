@@ -4,8 +4,6 @@ import React, { useState, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import {
   ShieldCheck,
-  CheckCircle2,
-  AlertTriangle,
   FileText,
   IndianRupee,
   Layers,
@@ -15,7 +13,6 @@ import {
   Download,
   Users,
   Search,
-  Filter,
   Edit,
   Trash2,
   Printer,
@@ -26,10 +23,9 @@ import {
   Cpu,
   Clock,
   ArrowUpRight,
-  ShieldAlert,
+  AlertTriangle,
   FileDown,
   ChevronRight,
-  Zap,
   Activity,
   AlertCircle,
   CheckCircle,
@@ -112,18 +108,6 @@ const COMMON_SPEC_SUGGESTIONS = [
   'Mounting Type',
 ];
 
-// Baseline engineering specs for categories
-const CATEGORY_ENGINEERING_BASELINES: Record<string, string> = {
-  'CAT-MCC': '100A–800A | Form 4B | IP54',
-  'CAT-PLC': '24VDC | 32 I/O | IP55',
-  'CAT-APFC': '150–400 kVAr | 440V | IP42',
-  'CAT-ACD': '75kW / 100HP | 415V | IP54',
-  'CAT-DCD': '15HP–100HP | 440V DC | IP42',
-  'CAT-PCC': '800A–4000A | 50kA | Form 4B',
-  'CAT-MET': '0.2s Accuracy | 415V | IP54',
-  'CAT-CHG': '125A–630A | 4-Pole | IP54',
-  'CAT-DIST': '63A–400A | 415V | IP54',
-};
 
 export function MasterAdminConsole({
   initialProducts,
@@ -240,68 +224,6 @@ export function MasterAdminConsole({
     };
   }, [products, categories]);
 
-  // Section 2 Computations: Pending Engineering Tasks Queue
-  const pendingTasks = useMemo(() => {
-    const tasks: Array<{
-      product: ProductItem;
-      type: 'MISSING_FILE' | 'IMAGE_ONLY' | 'MISSING_IP' | 'UNPRICED';
-      label: string;
-      actionText: string;
-      priority: 'HIGH' | 'MEDIUM' | 'LOW';
-    }> = [];
-
-    products.forEach((p) => {
-      const specs = Array.isArray(p.specifications) ? p.specifications : [];
-      const pPrice = p.price || p.basePrice || 0;
-
-      // 1. Missing File altogether
-      if (!p.fileUrl) {
-        tasks.push({
-          product: p,
-          type: 'MISSING_FILE',
-          label: 'Missing Drawing / Datasheet',
-          actionText: '+ Upload PDF',
-          priority: 'HIGH',
-        });
-      } else if (p.fileType === 'IMAGE') {
-        // 2. Image only, missing engineering CAD/PDF drawing
-        tasks.push({
-          product: p,
-          type: 'IMAGE_ONLY',
-          label: 'Image Attached • Missing Engineering PDF',
-          actionText: '+ Upload PDF',
-          priority: 'MEDIUM',
-        });
-      }
-
-      // 3. Missing IP Rating
-      const hasIP = specs.some(
-        (s) => /ingress|ip/i.test(s.name) || /ip\d{2}/i.test(s.value)
-      );
-      if (!hasIP) {
-        tasks.push({
-          product: p,
-          type: 'MISSING_IP',
-          label: 'Missing Ingress Protection (IP) Spec',
-          actionText: 'Edit Specs',
-          priority: 'MEDIUM',
-        });
-      }
-
-      // 4. Unpriced
-      if (pPrice <= 0) {
-        tasks.push({
-          product: p,
-          type: 'UNPRICED',
-          label: 'Zero Price Master Record',
-          actionText: 'Set Price',
-          priority: 'HIGH',
-        });
-      }
-    });
-
-    return tasks;
-  }, [products]);
 
   // Filtered Products for Live Product Master Table
   const filteredProducts = useMemo(() => {
@@ -553,28 +475,27 @@ export function MasterAdminConsole({
     <div className="space-y-6 pb-20">
       {/* Console Top Header */}
       <div className="bg-[#0B1120] rounded-2xl p-6 sm:p-7 text-white shadow-2xl border border-slate-800 relative overflow-hidden">
-        <div className="absolute right-0 top-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute right-0 top-0 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-2 bg-amber-500/15 border border-amber-500/30 px-3 py-1 rounded-full text-amber-300 text-xs font-mono mb-2.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+            <div className="inline-flex items-center gap-2 bg-blue-500/15 border border-blue-500/30 px-3 py-1 rounded-full text-blue-300 text-xs font-mono mb-2.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
               <span className="font-semibold tracking-wide">SVG MASTER ADMIN CONSOLE</span>
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse ml-1" />
               <span className="text-[10px] text-emerald-400 font-bold">OPERATIONAL</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
-              Catalog Governance & Commercial Command
+              Price and Product Finder
             </h1>
-            <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl leading-relaxed">
-              Real-time engineering data integrity, live price matrix governance, actionable
-              completion queue, and immutable audit tracking.
+            <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-3xl leading-relaxed">
+              Ensuring quotation readiness through master catalog integrity, controlled price matrices, actionable asset completion, and administrative audit trails.
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
             <button
               onClick={handleOpenCreate}
-              className="inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-500 active:scale-95 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-lg shadow-amber-600/25 transition-all"
+              className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-lg shadow-blue-600/25 transition-all"
             >
               <PlusCircle className="w-4 h-4" />
               <span>+ Add New Product</span>
@@ -583,26 +504,24 @@ export function MasterAdminConsole({
               onClick={() => setIsBulkOpen(true)}
               className="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 border border-slate-700 text-xs font-semibold px-4 py-2.5 rounded-xl transition-all"
             >
-              <Upload className="w-4 h-4 text-amber-400" />
+              <Upload className="w-4 h-4 text-blue-400" />
               <span>Bulk Upload</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* ========================================================================= */}
-      {/* SECTION 1: CATALOG GOVERNANCE & HEALTH BAR                                */}
-      {/* ========================================================================= */}
-      <div className="bg-[#0B1120] rounded-2xl border border-slate-800 shadow-xl p-5 space-y-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
+      {/* 2nd Box: Catalog Health Gauges (4 Cards Only) */}
+      <div className="bg-[#0B1120] rounded-2xl border border-slate-800 shadow-xl p-5 space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
           <div className="flex items-center gap-2">
-            <Activity className="w-4 h-4 text-amber-400" />
+            <Activity className="w-4 h-4 text-blue-400" />
             <span className="text-xs font-bold uppercase tracking-wider text-slate-200 font-mono">
-              Section 1 • Catalog Governance & Health Bar
+              Catalog Integrity & Coverage Gauges
             </span>
           </div>
           <span className="text-[11px] font-mono text-slate-400">
-            Combined Completeness Deck & Engineering Matrix
+            Real-time Database Health
           </span>
         </div>
 
@@ -658,7 +577,7 @@ export function MasterAdminConsole({
                 {healthMetrics.withFiles - healthMetrics.pdfs} Image(s)
               </p>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center flex-shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/20 text-brand-400 flex items-center justify-center flex-shrink-0">
               <FileText className="w-5 h-5" />
             </div>
           </div>
@@ -700,7 +619,7 @@ export function MasterAdminConsole({
               </span>
               <div className="flex items-baseline gap-2">
                 <span className="text-2xl font-black text-white font-mono">
-                  {categories.length} Families
+                  {categories.length} Categories
                 </span>
                 <span className="text-xs font-bold text-purple-400 font-mono bg-purple-500/10 border border-purple-500/30 px-1.5 py-0.5 rounded">
                   Standardized
@@ -715,262 +634,117 @@ export function MasterAdminConsole({
             </div>
           </div>
         </div>
-
-        {/* Category Power & Voltage Range Bar */}
-        <div className="bg-slate-950/70 rounded-xl p-4 border border-slate-800/80">
-          <div className="flex items-center justify-between mb-2.5">
-            <div className="flex items-center gap-2">
-              <Zap className="w-3.5 h-3.5 text-amber-400" />
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300 font-mono">
-                Category Power & Voltage Range Bar (Physical Parameter Spans)
-              </span>
-            </div>
-            <span className="text-[10px] font-mono text-slate-500">
-              Click family chip to filter live master table
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
-            {categories.map((c) => {
-              const catProducts = products.filter((p) => p.categoryId === c.id);
-              const skuCount = catProducts.length;
-              const baseline =
-                CATEGORY_ENGINEERING_BASELINES[c.code] || '415V AC | IP54 | Form 2b';
-              const isSelected = selectedCategory === c.id;
-
-              return (
-                <button
-                  key={c.id}
-                  onClick={() => setSelectedCategory(isSelected ? '' : c.id)}
-                  className={`flex-shrink-0 px-3 py-2 rounded-lg border text-left transition-all ${
-                    isSelected
-                      ? 'bg-amber-500/15 border-amber-500/50 text-amber-200 shadow-sm'
-                      : 'bg-slate-900/80 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-900'
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="font-bold font-mono text-xs text-white whitespace-nowrap">
-                      {c.name}
-                    </span>
-                    <span
-                      className={`text-[10px] font-mono font-bold px-1.5 py-0.2 rounded ${
-                        skuCount > 0
-                          ? 'bg-slate-800 text-amber-400 border border-slate-700'
-                          : 'bg-slate-800/50 text-slate-500'
-                      }`}
-                    >
-                      {skuCount} {skuCount === 1 ? 'SKU' : 'SKUs'}
-                    </span>
-                  </div>
-                  <div className="mt-1 text-[10px] font-mono text-slate-400 whitespace-nowrap flex items-center gap-1">
-                    <span className="text-amber-500/70 font-semibold">•</span>
-                    <span>{baseline}</span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
       </div>
 
-      {/* ========================================================================= */}
-      {/* SECTION 2: ACTIONABLE DATA COMPLETION & QUICK CONTROLS (2-COLUMN GRID)    */}
-      {/* ========================================================================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column: Pending Engineering Tasks Queue (7 cols) */}
-        <div className="lg:col-span-7 bg-[#0B1120] rounded-2xl border border-slate-800 shadow-xl p-5 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-amber-400" />
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200 font-mono">
-                  Pending Engineering Tasks Queue
-                </h3>
-              </div>
-              <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 font-bold">
-                {pendingTasks.length} Action Items
-              </span>
-            </div>
+      {/* 3rd Box: Admin Master Control (Landscape Layout) */}
+      <div className="bg-[#0B1120] rounded-2xl border border-slate-800 shadow-xl p-5 relative overflow-hidden">
+        <div className="absolute right-0 top-0 w-64 h-64 bg-blue-600/5 rounded-full blur-3xl pointer-events-none" />
 
-            <p className="text-[11px] text-slate-400 mt-2 mb-3">
-              Live checklist of master catalog records requiring engineering drawings, specification
-              corrections, or pricing completion.
-            </p>
-
-            <div className="space-y-2.5 max-h-[290px] overflow-y-auto pr-1">
-              {pendingTasks.length === 0 ? (
-                <div className="py-10 text-center rounded-xl bg-slate-900/60 border border-slate-800/80">
-                  <CheckCircle className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
-                  <p className="text-sm font-bold text-white">Catalog 100% Engineering Verified</p>
-                  <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-                    All technical specifications, IP ratings, and engineering attachments are
-                    properly attached.
-                  </p>
-                </div>
-              ) : (
-                pendingTasks.slice(0, 5).map((task, idx) => (
-                  <div
-                    key={`${task.product.id}-${task.type}-${idx}`}
-                    className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-slate-700 flex items-center justify-between gap-3 transition-colors"
-                  >
-                    <div className="space-y-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs font-bold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
-                          {task.product.productCode}
-                        </span>
-                        <span className="text-xs font-semibold text-slate-200 truncate">
-                          {task.product.name}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold ${
-                            task.priority === 'HIGH'
-                              ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
-                              : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
-                          }`}
-                        >
-                          {task.label}
-                        </span>
-                        <span className="text-[10px] text-slate-500 font-mono truncate">
-                          {task.product.category?.name}
-                        </span>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => handleOpenEdit(task.product)}
-                      className="inline-flex items-center gap-1.5 bg-amber-600/90 hover:bg-amber-500 active:scale-95 text-white font-mono text-[11px] font-bold px-3 py-1.5 rounded-lg shadow-sm whitespace-nowrap transition-all"
-                    >
-                      <span>{task.actionText}</span>
-                      <ArrowUpRight className="w-3 h-3" />
-                    </button>
-                  </div>
-                ))
-              )}
-            </div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-800/80 gap-2">
+          <div className="flex items-center gap-2">
+            <Cpu className="w-4 h-4 text-blue-400" />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200 font-mono">
+              Admin Master Control
+            </h3>
           </div>
-
-          <div className="pt-3 mt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] font-mono text-slate-400">
-            <span>Resolving tasks immediately updates sales estimation lookups</span>
-            <span className="text-amber-400 font-bold">Auto-sync active</span>
+          <div className="flex items-center gap-2 text-[11px] font-mono text-slate-400">
+            <span>Superadmin Access Active</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-emerald-400 font-bold">256-bit AES</span>
           </div>
         </div>
 
-        {/* Right Column: Admin Master Control Hub (5 cols) */}
-        <div className="lg:col-span-5 bg-[#0B1120] rounded-2xl border border-slate-800 shadow-xl p-5 flex flex-col justify-between relative overflow-hidden">
-          <div className="absolute right-0 top-0 w-48 h-48 bg-amber-500/5 rounded-full blur-2xl pointer-events-none" />
+        <p className="text-[11px] text-slate-400 mt-2 mb-4 leading-relaxed">
+          Operational command hub for catalog maintenance, batch imports, master exports, and user privileges.
+        </p>
 
-          <div>
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-              <div className="flex items-center gap-2">
-                <Cpu className="w-4 h-4 text-amber-400" />
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200 font-mono">
-                  Admin Master Control
-                </h3>
+        {/* 4 Action Buttons in Landscape Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Button 1: Add New Product */}
+          <button
+            onClick={handleOpenCreate}
+            className="group bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:scale-[0.98] text-white p-3.5 rounded-xl shadow-lg shadow-blue-600/20 flex items-center justify-between transition-all"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-black/20 flex items-center justify-center flex-shrink-0">
+                <PlusCircle className="w-4 h-4 text-white" />
               </div>
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <div className="text-left min-w-0">
+                <span className="text-xs font-bold block leading-none truncate">
+                  + Add New Product
+                </span>
+                <span className="text-[10px] text-blue-100 font-mono mt-1 block truncate">
+                  Category prefix & specs
+                </span>
+              </div>
             </div>
+            <ChevronRight className="w-4 h-4 text-blue-200 group-hover:translate-x-0.5 transition-transform flex-shrink-0" />
+          </button>
 
-            <p className="text-[11px] text-slate-400 mt-2 mb-4 leading-relaxed">
-              Operational command hub for catalog maintenance, batch imports, master exports, and
-              user privileges.
-            </p>
-
-            {/* 4 Action Buttons */}
-            <div className="space-y-2.5">
-              {/* Button 1: Add New Product */}
-              <button
-                onClick={handleOpenCreate}
-                className="w-full group bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 active:scale-[0.98] text-white p-3 rounded-xl shadow-lg shadow-amber-600/20 flex items-center justify-between transition-all"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-black/20 flex items-center justify-center">
-                    <PlusCircle className="w-4 h-4 text-white" />
-                  </div>
-                  <div className="text-left">
-                    <span className="text-xs font-bold block leading-none">
-                      + Add New Product
-                    </span>
-                    <span className="text-[10px] text-amber-100 font-mono mt-1 block">
-                      Category prefix with custom specs & drawing
-                    </span>
-                  </div>
-                </div>
-                <ChevronRight className="w-4 h-4 text-amber-200 group-hover:translate-x-0.5 transition-transform" />
-              </button>
-
-              {/* Button 2: Bulk Upload */}
-              <button
-                onClick={() => setIsBulkOpen(true)}
-                className="w-full group bg-slate-900 hover:bg-slate-800/90 active:scale-[0.98] text-slate-100 border border-slate-700/80 p-3 rounded-xl flex items-center justify-between transition-all"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-amber-400">
-                    <Upload className="w-4 h-4" />
-                  </div>
-                  <div className="text-left">
-                    <span className="text-xs font-bold block leading-none">
-                      📁 Bulk Upload PDFs / Excel
-                    </span>
-                    <span className="text-[10px] text-slate-400 font-mono mt-1 block">
-                      Batch import products or spec sheets (.xlsx / .csv)
-                    </span>
-                  </div>
-                </div>
-                <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
-              </button>
-
-              {/* Button 3: Export Full Price Master */}
-              <a
-                href="/api/admin/export?type=products"
-                target="_blank"
-                rel="noreferrer"
-                className="w-full group bg-slate-900 hover:bg-slate-800/90 active:scale-[0.98] text-slate-100 border border-slate-700/80 p-3 rounded-xl flex items-center justify-between transition-all"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-emerald-400">
-                    <FileSpreadsheet className="w-4 h-4" />
-                  </div>
-                  <div className="text-left">
-                    <span className="text-xs font-bold block leading-none">
-                      📊 Export Full Price Master
-                    </span>
-                    <span className="text-[10px] text-slate-400 font-mono mt-1 block">
-                      Download complete catalog with specs (.xlsx)
-                    </span>
-                  </div>
-                </div>
-                <Download className="w-4 h-4 text-slate-400 group-hover:translate-y-0.5 transition-transform" />
-              </a>
-
-              {/* Button 4: Manage User Accounts */}
-              <Link
-                href="/admin/users"
-                className="w-full group bg-slate-900 hover:bg-slate-800/90 active:scale-[0.98] text-slate-100 border border-slate-700/80 p-3 rounded-xl flex items-center justify-between transition-all"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-cyan-400">
-                    <Users className="w-4 h-4" />
-                  </div>
-                  <div className="text-left">
-                    <span className="text-xs font-bold block leading-none">
-                      👥 Manage User Accounts
-                    </span>
-                    <span className="text-[10px] text-slate-400 font-mono mt-1 block">
-                      Sales engineers, admin roles & login access
-                    </span>
-                  </div>
-                </div>
-                <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
-              </Link>
+          {/* Button 2: Bulk Upload */}
+          <button
+            onClick={() => setIsBulkOpen(true)}
+            className="group bg-slate-900 hover:bg-slate-800/90 active:scale-[0.98] text-slate-100 border border-slate-700/80 p-3.5 rounded-xl flex items-center justify-between transition-all"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-blue-400 flex-shrink-0">
+                <Upload className="w-4 h-4" />
+              </div>
+              <div className="text-left min-w-0">
+                <span className="text-xs font-bold block leading-none truncate">
+                  📁 Bulk Upload
+                </span>
+                <span className="text-[10px] text-slate-400 font-mono mt-1 block truncate">
+                  Batch import (.xlsx / .csv)
+                </span>
+              </div>
             </div>
-          </div>
+            <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform flex-shrink-0" />
+          </button>
 
-          <div className="pt-3 mt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] font-mono text-slate-400">
-            <span>Security: Superadmin privilege active</span>
-            <span className="text-emerald-400 font-bold">256-bit AES</span>
-          </div>
+          {/* Button 3: Export Full Price Master */}
+          <a
+            href="/api/admin/export?type=products"
+            target="_blank"
+            rel="noreferrer"
+            className="group bg-slate-900 hover:bg-slate-800/90 active:scale-[0.98] text-slate-100 border border-slate-700/80 p-3.5 rounded-xl flex items-center justify-between transition-all"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-emerald-400 flex-shrink-0">
+                <FileSpreadsheet className="w-4 h-4" />
+              </div>
+              <div className="text-left min-w-0">
+                <span className="text-xs font-bold block leading-none truncate">
+                  📊 Export Price Master
+                </span>
+                <span className="text-[10px] text-slate-400 font-mono mt-1 block truncate">
+                  Download catalog (.xlsx)
+                </span>
+              </div>
+            </div>
+            <Download className="w-4 h-4 text-slate-400 group-hover:translate-y-0.5 transition-transform flex-shrink-0" />
+          </a>
+
+          {/* Button 4: Manage User Accounts */}
+          <Link
+            href="/admin/users"
+            className="group bg-slate-900 hover:bg-slate-800/90 active:scale-[0.98] text-slate-100 border border-slate-700/80 p-3.5 rounded-xl flex items-center justify-between transition-all"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-cyan-400 flex-shrink-0">
+                <Users className="w-4 h-4" />
+              </div>
+              <div className="text-left min-w-0">
+                <span className="text-xs font-bold block leading-none truncate">
+                  👥 Manage Users
+                </span>
+                <span className="text-[10px] text-slate-400 font-mono mt-1 block truncate">
+                  Sales & admin roles
+                </span>
+              </div>
+            </div>
+            <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform flex-shrink-0" />
+          </Link>
         </div>
       </div>
 
@@ -990,7 +764,7 @@ export function MasterAdminConsole({
               </div>
               <Link
                 href="/admin/audit-logs"
-                className="text-[11px] font-mono text-amber-600 hover:text-amber-700 font-bold flex items-center gap-1"
+                className="text-[11px] font-mono text-blue-600 hover:text-blue-700 font-bold flex items-center gap-1"
               >
                 <span>View Full Log</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -1010,7 +784,7 @@ export function MasterAdminConsole({
                 auditLogs.map((log) => {
                   let badgeColor = 'bg-slate-100 text-slate-700 border-slate-200';
                   if (log.action.includes('PRODUCT')) {
-                    badgeColor = 'bg-amber-50 text-amber-700 border-amber-200';
+                    badgeColor = 'bg-blue-50 text-blue-700 border-blue-200';
                   } else if (log.action.includes('ESTIMATION_FINALIZED')) {
                     badgeColor = 'bg-emerald-50 text-emerald-700 border-emerald-200';
                   } else if (log.action.includes('ESTIMATION')) {
@@ -1067,7 +841,7 @@ export function MasterAdminConsole({
           <div className="pt-3 mt-3 border-t border-slate-100 text-center">
             <Link
               href="/admin/audit-logs"
-              className="text-xs font-bold text-slate-700 hover:text-amber-600 font-mono inline-flex items-center gap-1.5"
+              className="text-xs font-bold text-slate-700 hover:text-blue-600 font-mono inline-flex items-center gap-1.5"
             >
               <span>Explore full audit database with entity filters</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
@@ -1095,13 +869,13 @@ export function MasterAdminConsole({
                     placeholder="Search code or model..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="pl-8 pr-3 py-1 text-xs border border-slate-200 rounded-lg focus:ring-1 focus:ring-amber-500 w-36 sm:w-44 font-mono"
+                    className="pl-8 pr-3 py-1 text-xs border border-slate-200 rounded-lg focus:ring-1 focus:ring-blue-500 w-36 sm:w-44 font-mono"
                   />
                 </div>
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="text-xs border border-slate-200 rounded-lg px-2 py-1 focus:ring-1 focus:ring-amber-500 bg-white"
+                  className="text-xs border border-slate-200 rounded-lg px-2 py-1 focus:ring-1 focus:ring-blue-500 bg-white"
                 >
                   <option value="">All Categories</option>
                   {categories.map((c) => (
@@ -1130,7 +904,7 @@ export function MasterAdminConsole({
                   {tableLoading ? (
                     <tr>
                       <td colSpan={6} className="text-center py-10 text-slate-400">
-                        <Loader2 className="w-5 h-5 animate-spin mx-auto text-amber-600 mb-1" />
+                        <Loader2 className="w-5 h-5 animate-spin mx-auto text-blue-600 mb-1" />
                         <span>Updating catalog records...</span>
                       </td>
                     </tr>
@@ -1148,7 +922,7 @@ export function MasterAdminConsole({
                           {/* Model / Name */}
                           <td className="px-3 py-2.5">
                             <div className="flex items-center gap-2">
-                              <span className="font-mono text-[11px] font-bold bg-slate-900 text-amber-400 px-1.5 py-0.5 rounded shadow-xs whitespace-nowrap">
+                              <span className="font-mono text-[11px] font-bold bg-slate-900 text-blue-400 border border-slate-700 px-1.5 py-0.5 rounded shadow-xs whitespace-nowrap">
                                 {p.productCode}
                               </span>
                               <span className="font-semibold text-slate-800 line-clamp-1 max-w-[140px]">
@@ -1221,7 +995,7 @@ export function MasterAdminConsole({
                               <button
                                 onClick={() => handleOpenPrint(p)}
                                 title="Print Technical Spec Sheet"
-                                className="p-1 rounded bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-700 transition-colors"
+                                className="p-1 rounded bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-600 transition-colors"
                               >
                                 <Printer className="w-3.5 h-3.5" />
                               </button>
@@ -1251,7 +1025,7 @@ export function MasterAdminConsole({
             </span>
             <Link
               href="/admin/products"
-              className="text-amber-600 hover:underline font-bold flex items-center gap-1"
+              className="text-blue-600 hover:underline font-bold flex items-center gap-1"
             >
               <span>Manage all products &rarr;</span>
             </Link>
@@ -1302,7 +1076,7 @@ export function MasterAdminConsole({
                     value={categoryId}
                     onChange={(e) => setCategoryId(e.target.value)}
                     required
-                    className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-amber-500 font-mono"
+                    className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 font-mono"
                   >
                     {categories.map((c) => (
                       <option key={c.id} value={c.id}>
@@ -1316,7 +1090,7 @@ export function MasterAdminConsole({
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
                     Product Code Number *
                   </label>
-                  <div className="flex rounded-lg shadow-xs overflow-hidden border border-slate-300 focus-within:ring-2 focus-within:ring-amber-500">
+                  <div className="flex rounded-lg shadow-xs overflow-hidden border border-slate-300 focus-within:ring-2 focus-within:ring-blue-500">
                     <span className="inline-flex items-center px-3 bg-slate-100 text-slate-600 font-mono text-xs font-bold border-r border-slate-300 select-none">
                       {currentPrefix}
                     </span>
@@ -1330,7 +1104,7 @@ export function MasterAdminConsole({
                     />
                   </div>
                   <span className="text-[10px] text-slate-500 font-mono mt-1 block">
-                    Final Code: <strong className="text-amber-600">{previewProductCode}</strong>
+                    Final Code: <strong className="text-blue-600">{previewProductCode}</strong>
                   </span>
                 </div>
               </div>
@@ -1347,7 +1121,7 @@ export function MasterAdminConsole({
                     onChange={(e) => setName(e.target.value)}
                     placeholder="e.g. Industrial Motor Control Center"
                     required
-                    className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-amber-500"
+                    className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
@@ -1369,7 +1143,7 @@ export function MasterAdminConsole({
                       }
                       placeholder="e.g. 350000"
                       required
-                      className="w-full text-xs border border-slate-300 rounded-lg pl-7 pr-3 py-2 focus:ring-2 focus:ring-amber-500 font-mono font-bold"
+                      className="w-full text-xs border border-slate-300 rounded-lg pl-7 pr-3 py-2 focus:ring-2 focus:ring-blue-500 font-mono font-bold"
                     />
                   </div>
                 </div>
@@ -1385,7 +1159,7 @@ export function MasterAdminConsole({
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Detailed engineering description, busbar specs, breaker ratings..."
-                  className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-amber-500"
+                  className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
@@ -1401,13 +1175,13 @@ export function MasterAdminConsole({
                 {fileUrl ? (
                   <div className="flex items-center justify-between p-2.5 bg-white rounded-lg border border-slate-200">
                     <div className="flex items-center gap-2">
-                      <FileText className="w-5 h-5 text-amber-600" />
+                      <FileText className="w-5 h-5 text-blue-600" />
                       <div>
                         <a
                           href={fileUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="text-xs font-bold text-amber-700 hover:underline flex items-center gap-1"
+                          className="text-xs font-bold text-blue-700 hover:underline flex items-center gap-1"
                         >
                           <span>{fileName || 'Attached Document'}</span>
                           <ExternalLink className="w-3 h-3" />
@@ -1442,10 +1216,10 @@ export function MasterAdminConsole({
                     />
                     <label
                       htmlFor="console-file-input"
-                      className="cursor-pointer border-2 border-dashed border-slate-300 hover:border-amber-500 rounded-xl p-4 flex flex-col items-center justify-center text-center transition-colors bg-white"
+                      className="cursor-pointer border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-xl p-4 flex flex-col items-center justify-center text-center transition-colors bg-white"
                     >
                       {uploadingFile ? (
-                        <div className="flex items-center gap-2 text-xs text-amber-600">
+                        <div className="flex items-center gap-2 text-xs text-blue-600">
                           <Loader2 className="w-4 h-4 animate-spin" />
                           <span>Uploading to cloud storage...</span>
                         </div>
@@ -1476,7 +1250,7 @@ export function MasterAdminConsole({
                     onClick={() =>
                       setSpecifications((prev) => [...prev, { name: '', value: '' }])
                     }
-                    className="text-[11px] font-bold text-amber-600 hover:text-amber-700 flex items-center gap-1"
+                    className="text-[11px] font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1"
                   >
                     <PlusCircle className="w-3.5 h-3.5" />
                     <span>+ Add Parameter</span>
@@ -1493,7 +1267,7 @@ export function MasterAdminConsole({
                       onClick={() =>
                         setSpecifications((prev) => [...prev, { name: s, value: '' }])
                       }
-                      className="text-[10px] bg-white border border-slate-200 text-slate-600 hover:border-amber-400 px-2 py-0.5 rounded font-mono transition-colors"
+                      className="text-[10px] bg-white border border-slate-200 text-slate-600 hover:border-blue-400 px-2 py-0.5 rounded font-mono transition-colors"
                     >
                       +{s}
                     </button>
@@ -1515,7 +1289,7 @@ export function MasterAdminConsole({
                             return n;
                           });
                         }}
-                        className="w-1/2 text-xs border border-slate-300 rounded px-2.5 py-1.5 focus:ring-1 focus:ring-amber-500 font-mono"
+                        className="w-1/2 text-xs border border-slate-300 rounded px-2.5 py-1.5 focus:ring-1 focus:ring-blue-500 font-mono"
                       />
                       <input
                         type="text"
@@ -1529,7 +1303,7 @@ export function MasterAdminConsole({
                             return n;
                           });
                         }}
-                        className="w-1/2 text-xs border border-slate-300 rounded px-2.5 py-1.5 focus:ring-1 focus:ring-amber-500 font-mono"
+                        className="w-1/2 text-xs border border-slate-300 rounded px-2.5 py-1.5 focus:ring-1 focus:ring-blue-500 font-mono"
                       />
                       <button
                         type="button"
@@ -1552,7 +1326,7 @@ export function MasterAdminConsole({
                   id="product-active-toggle"
                   checked={active}
                   onChange={(e) => setActive(e.target.checked)}
-                  className="rounded border-slate-300 text-amber-600 focus:ring-amber-500 w-4 h-4"
+                  className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4"
                 />
                 <label
                   htmlFor="product-active-toggle"
@@ -1574,7 +1348,7 @@ export function MasterAdminConsole({
                 <button
                   type="submit"
                   disabled={saving || uploadingFile}
-                  className="px-5 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-500 rounded-lg shadow-sm flex items-center gap-2 disabled:opacity-50"
+                  className="px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-lg shadow-sm shadow-blue-600/20 flex items-center gap-2 disabled:opacity-50"
                 >
                   {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   <span>{editingProduct ? 'Save Changes' : 'Create Product'}</span>
@@ -1611,10 +1385,10 @@ export function MasterAdminConsole({
             </div>
 
             <form onSubmit={handleBulkUpload} className="p-6 space-y-4">
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3.5 flex items-center justify-between">
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex items-center justify-between">
                 <div>
-                  <h4 className="text-xs font-bold text-amber-900">Standardized Excel Template</h4>
-                  <p className="text-[11px] text-amber-700">
+                  <h4 className="text-xs font-bold text-slate-800">Standardized Excel Template</h4>
+                  <p className="text-[11px] text-slate-500">
                     Use our template with pre-configured headers and examples.
                   </p>
                 </div>
@@ -1622,9 +1396,9 @@ export function MasterAdminConsole({
                   href="/api/admin/import/template?type=products"
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 bg-white border border-amber-300 text-amber-800 text-xs font-bold px-3 py-1.5 rounded-lg shadow-xs hover:bg-amber-100 transition-colors"
+                  className="inline-flex items-center gap-1.5 bg-white border border-slate-300 text-slate-800 hover:text-blue-600 text-xs font-bold px-3 py-1.5 rounded-lg shadow-xs hover:bg-slate-100 transition-colors"
                 >
-                  <FileDown className="w-3.5 h-3.5" />
+                  <FileDown className="w-3.5 h-3.5 text-blue-600" />
                   <span>Download</span>
                 </a>
               </div>
@@ -1640,7 +1414,7 @@ export function MasterAdminConsole({
                 />
                 <label
                   htmlFor="bulk-file-upload-input"
-                  className="cursor-pointer border-2 border-dashed border-slate-300 hover:border-amber-500 rounded-xl p-6 flex flex-col items-center justify-center text-center transition-colors bg-slate-50"
+                  className="cursor-pointer border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-xl p-6 flex flex-col items-center justify-center text-center transition-colors bg-slate-50"
                 >
                   <FileSpreadsheet className="w-8 h-8 text-slate-400 mb-2" />
                   {bulkFile ? (
@@ -1704,7 +1478,7 @@ export function MasterAdminConsole({
                 <button
                   type="submit"
                   disabled={!bulkFile || bulkUploading}
-                  className="px-5 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-500 rounded-lg shadow-sm flex items-center gap-2 disabled:opacity-50"
+                  className="px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-lg shadow-sm shadow-blue-600/20 flex items-center gap-2 disabled:opacity-50"
                 >
                   {bulkUploading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   <span>{bulkUploading ? 'Importing...' : 'Upload & Import'}</span>

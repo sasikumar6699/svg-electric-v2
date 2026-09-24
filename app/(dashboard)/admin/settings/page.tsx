@@ -102,7 +102,7 @@ export default function AdminSettingsPage() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] text-slate-500">
-        <Loader2 className="w-8 h-8 animate-spin text-amber-600 mb-2" />
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600 mb-2" />
         <span className="text-xs font-mono">Loading System Settings...</span>
       </div>
     );
@@ -113,7 +113,7 @@ export default function AdminSettingsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-bold">
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 font-bold">
               ADMIN MASTER
             </span>
           </div>
@@ -127,7 +127,7 @@ export default function AdminSettingsPage() {
           type="button"
           onClick={handleSave}
           disabled={saving}
-          className="inline-flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm transition-all disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm shadow-blue-600/20 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
         >
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
           <span>Save Settings</span>
@@ -145,7 +145,7 @@ export default function AdminSettingsPage() {
         {/* Company Identity */}
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
           <h2 className="text-xs font-bold font-mono text-slate-800 uppercase tracking-wider flex items-center gap-2 pb-2 border-b border-slate-100">
-            <Building className="w-4 h-4 text-amber-600" />
+            <Building className="w-4 h-4 text-blue-600" />
             <span>Company Profile (Appears on PDF Header)</span>
           </h2>
 
@@ -157,7 +157,7 @@ export default function AdminSettingsPage() {
                 required
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
-                className="w-full px-3 py-1.5 rounded-lg border border-slate-300 focus:ring-1 focus:ring-amber-500"
+                className="w-full px-3 py-1.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
@@ -167,7 +167,7 @@ export default function AdminSettingsPage() {
                 type="text"
                 value={tagline}
                 onChange={(e) => setTagline(e.target.value)}
-                className="w-full px-3 py-1.5 rounded-lg border border-slate-300 focus:ring-1 focus:ring-amber-500"
+                className="w-full px-3 py-1.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
@@ -178,7 +178,7 @@ export default function AdminSettingsPage() {
                 required
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                className="w-full px-3 py-1.5 rounded-lg border border-slate-300 focus:ring-1 focus:ring-amber-500"
+                className="w-full px-3 py-1.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
@@ -189,7 +189,7 @@ export default function AdminSettingsPage() {
                 required
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full px-3 py-1.5 rounded-lg border border-slate-300 focus:ring-1 focus:ring-amber-500"
+                className="w-full px-3 py-1.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
@@ -200,7 +200,7 @@ export default function AdminSettingsPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-1.5 rounded-lg border border-slate-300 focus:ring-1 focus:ring-amber-500"
+                className="w-full px-3 py-1.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
@@ -211,7 +211,7 @@ export default function AdminSettingsPage() {
                 required
                 value={website}
                 onChange={(e) => setWebsite(e.target.value)}
-                className="w-full px-3 py-1.5 rounded-lg border border-slate-300 focus:ring-1 focus:ring-amber-500"
+                className="w-full px-3 py-1.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
@@ -222,7 +222,7 @@ export default function AdminSettingsPage() {
                 required
                 value={gstin}
                 onChange={(e) => setGstin(e.target.value.toUpperCase())}
-                className="w-full px-3 py-1.5 rounded-lg border border-slate-300 font-mono focus:ring-1 focus:ring-amber-500"
+                className="w-full px-3 py-1.5 rounded-lg border border-slate-300 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
@@ -233,7 +233,7 @@ export default function AdminSettingsPage() {
           {/* Tax Rates */}
           <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4 text-xs">
             <h2 className="text-xs font-bold font-mono text-slate-800 uppercase tracking-wider flex items-center gap-2 pb-2 border-b border-slate-100">
-              <Receipt className="w-4 h-4 text-amber-600" />
+              <Receipt className="w-4 h-4 text-blue-600" />
               <span>Goods & Services Tax (GST) Rates</span>
             </h2>
 
@@ -245,7 +245,7 @@ export default function AdminSettingsPage() {
                   step={0.5}
                   value={defaultGSTRate}
                   onChange={(e) => setDefaultGSTRate(parseFloat(e.target.value) || 0)}
-                  className="w-full px-3 py-1.5 rounded-lg border border-slate-300 font-mono"
+                  className="w-full px-3 py-1.5 rounded-lg border border-slate-300 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
@@ -256,7 +256,7 @@ export default function AdminSettingsPage() {
                   step={0.5}
                   value={defaultCGSTRate}
                   onChange={(e) => setDefaultCGSTRate(parseFloat(e.target.value) || 0)}
-                  className="w-full px-3 py-1.5 rounded-lg border border-slate-300 font-mono"
+                  className="w-full px-3 py-1.5 rounded-lg border border-slate-300 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
@@ -267,7 +267,7 @@ export default function AdminSettingsPage() {
                   step={0.5}
                   value={defaultSGSTRate}
                   onChange={(e) => setDefaultSGSTRate(parseFloat(e.target.value) || 0)}
-                  className="w-full px-3 py-1.5 rounded-lg border border-slate-300 font-mono"
+                  className="w-full px-3 py-1.5 rounded-lg border border-slate-300 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
@@ -278,7 +278,7 @@ export default function AdminSettingsPage() {
                   step={0.5}
                   value={defaultIGSTRate}
                   onChange={(e) => setDefaultIGSTRate(parseFloat(e.target.value) || 0)}
-                  className="w-full px-3 py-1.5 rounded-lg border border-slate-300 font-mono"
+                  className="w-full px-3 py-1.5 rounded-lg border border-slate-300 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -287,7 +287,7 @@ export default function AdminSettingsPage() {
           {/* Estimation Numbering Sequence */}
           <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4 text-xs">
             <h2 className="text-xs font-bold font-mono text-slate-800 uppercase tracking-wider flex items-center gap-2 pb-2 border-b border-slate-100">
-              <FileText className="w-4 h-4 text-amber-600" />
+              <FileText className="w-4 h-4 text-blue-600" />
               <span>Estimation Numbering Sequence</span>
             </h2>
 
@@ -297,7 +297,7 @@ export default function AdminSettingsPage() {
                 type="text"
                 value={estimationPrefix}
                 onChange={(e) => setEstimationPrefix(e.target.value.toUpperCase())}
-                className="w-full px-3 py-1.5 rounded-lg border border-slate-300 font-mono"
+                className="w-full px-3 py-1.5 rounded-lg border border-slate-300 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <span className="text-[10px] text-slate-400 mt-1 block">
                 Example output: {estimationPrefix}2026-01002
@@ -310,7 +310,7 @@ export default function AdminSettingsPage() {
                 id="yearSeq"
                 checked={yearBasedNumbering}
                 onChange={(e) => setYearBasedNumbering(e.target.checked)}
-                className="rounded border-slate-300 text-amber-600 focus:ring-amber-500"
+                className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
               />
               <label htmlFor="yearSeq" className="text-slate-700 font-medium">
                 Include Current Year in Estimation Number (e.g. EST-2026-XXXXX)
@@ -328,7 +328,7 @@ export default function AdminSettingsPage() {
             rows={6}
             value={termsAndConditions}
             onChange={(e) => setTermsAndConditions(e.target.value)}
-            className="w-full p-3 rounded-lg border border-slate-300 font-mono text-xs leading-relaxed focus:ring-1 focus:ring-amber-500"
+            className="w-full p-3 rounded-lg border border-slate-300 font-mono text-xs leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
       </form>

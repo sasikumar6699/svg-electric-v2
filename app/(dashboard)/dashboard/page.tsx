@@ -81,29 +81,13 @@ export default async function DashboardPage() {
   }));
 
   return (
-    <div className="space-y-8">
-      {/* 3-Section Master Admin Operational Console */}
+    <div>
       <MasterAdminConsole
         initialProducts={initialProducts}
         initialCategories={initialCategories}
         initialAuditLogs={initialAuditLogs}
       />
-
-      {/* Live Sales Search Experience for Admin Verification */}
-      <div className="pt-6 border-t border-slate-200">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700 font-mono">
-              Live Sales Discovery & Technical Lookup Engine (Sandbox Preview)
-            </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Live simulation of what field sales engineers see when filtering panel ratings and generating quotations.
-            </p>
-          </div>
-        </div>
-
-        <SalesProductCatalog />
-      </div>
     </div>
   );
 }
+

@@ -119,7 +119,7 @@ export default function AdminUsersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-bold">
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 font-bold">
               ADMIN MASTER
             </span>
           </div>
@@ -131,7 +131,7 @@ export default function AdminUsersPage() {
 
         <button
           onClick={handleOpenCreate}
-          className="inline-flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm transition-all"
+          className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm shadow-blue-600/20 transition-all active:scale-95 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>New User Account</span>
@@ -156,7 +156,7 @@ export default function AdminUsersPage() {
               {loading ? (
                 <tr>
                   <td colSpan={7} className="text-center py-12 text-slate-500">
-                    <Loader2 className="w-6 h-6 animate-spin text-amber-600 mx-auto mb-2" />
+                    <Loader2 className="w-6 h-6 animate-spin text-blue-600 mx-auto mb-2" />
                     <span>Loading users...</span>
                   </td>
                 </tr>
@@ -174,11 +174,11 @@ export default function AdminUsersPage() {
                       <span
                         className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
                           u.role === 'ADMIN'
-                            ? 'bg-amber-100 text-amber-800 border border-amber-300'
-                            : 'bg-brand-100 text-brand-800 border border-brand-300'
+                            ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                            : 'bg-indigo-50 text-indigo-700 border border-indigo-200'
                         }`}
                       >
-                        {u.role === 'ADMIN' ? <ShieldCheck className="w-3 h-3" /> : <User className="w-3 h-3" />}
+                        {u.role === 'ADMIN' ? <ShieldCheck className="w-3 h-3 text-blue-600" /> : <User className="w-3 h-3 text-indigo-600" />}
                         <span>{u.role}</span>
                       </span>
                     </td>
@@ -202,7 +202,7 @@ export default function AdminUsersPage() {
                     <td className="px-4 py-3 text-right whitespace-nowrap">
                       <button
                         onClick={() => handleOpenEdit(u)}
-                        className="p-1 rounded hover:bg-slate-100 text-slate-600 hover:text-amber-700 transition-colors"
+                        className="p-1 rounded hover:bg-slate-100 text-slate-600 hover:text-blue-600 transition-colors"
                         title="Edit User"
                       >
                         <Edit className="w-4 h-4" />
@@ -244,7 +244,7 @@ export default function AdminUsersPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Ramesh Kumar"
-                  className="w-full px-3 py-1.5 rounded-lg border border-slate-300 focus:ring-1 focus:ring-amber-500"
+                  className="w-full px-3 py-1.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
@@ -257,7 +257,7 @@ export default function AdminUsersPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value.toLowerCase())}
                   placeholder="name@svgelectric.com"
-                  className="w-full px-3 py-1.5 rounded-lg border border-slate-300 focus:ring-1 focus:ring-amber-500 disabled:bg-slate-100"
+                  className="w-full px-3 py-1.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100"
                 />
               </div>
 
@@ -271,7 +271,7 @@ export default function AdminUsersPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"
-                  className="w-full px-3 py-1.5 rounded-lg border border-slate-300 focus:ring-1 focus:ring-amber-500"
+                  className="w-full px-3 py-1.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
@@ -281,7 +281,7 @@ export default function AdminUsersPage() {
                   <select
                     value={role}
                     onChange={(e) => setRole(e.target.value)}
-                    className="w-full px-3 py-1.5 rounded-lg border border-slate-300 font-mono text-xs focus:ring-1 focus:ring-amber-500"
+                    className="w-full px-3 py-1.5 rounded-lg border border-slate-300 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="SALES_USER">SALES_USER</option>
                     <option value="ADMIN">ADMIN</option>
@@ -295,7 +295,7 @@ export default function AdminUsersPage() {
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="+91 98765 00000"
-                    className="w-full px-3 py-1.5 rounded-lg border border-slate-300 font-mono focus:ring-1 focus:ring-amber-500"
+                    className="w-full px-3 py-1.5 rounded-lg border border-slate-300 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -306,7 +306,7 @@ export default function AdminUsersPage() {
                   id="userActive"
                   checked={active}
                   onChange={(e) => setActive(e.target.checked)}
-                  className="rounded border-slate-300 text-amber-600 focus:ring-amber-500"
+                  className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                 />
                 <label htmlFor="userActive" className="text-slate-700 font-medium">
                   Active (Allowed to sign in)
@@ -317,14 +317,14 @@ export default function AdminUsersPage() {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-lg border border-slate-300 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+                  className="px-4 py-2 rounded-lg border border-slate-300 text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="px-5 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold shadow-sm disabled:opacity-50 flex items-center gap-1.5"
+                  className="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm shadow-blue-600/20 disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
                 >
                   {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   <span>{editingUser ? 'Update User' : 'Create User'}</span>

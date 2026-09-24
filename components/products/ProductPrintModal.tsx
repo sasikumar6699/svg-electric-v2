@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Printer, X, Eye, EyeOff, FileText, CheckCircle2, ShieldCheck, Download } from 'lucide-react';
 import { formatINR } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -29,6 +29,24 @@ export const ProductPrintModal: React.FC<ProductPrintModalProps> = ({
   onClose,
 }) => {
   const [includePrice, setIncludePrice] = useState(true);
+  const [company, setCompany] = useState<{
+    companyName?: string;
+    address?: string;
+    phone?: string;
+    email?: string;
+    website?: string;
+    gstin?: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    fetch('/api/admin/settings')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.settings) setCompany(data.settings);
+      })
+      .catch(() => {});
+  }, [isOpen]);
 
   if (!isOpen || !product) return null;
 
@@ -38,14 +56,20 @@ export const ProductPrintModal: React.FC<ProductPrintModalProps> = ({
 
   const specs = Array.isArray(product.specifications) ? product.specifications : [];
 
+  const companyName = company?.companyName || 'SVG ELECTRIC & CONTROL PRODUCTS';
+  const companyAddress = company?.address || '# 1/22 perumal kovil Street, Barur(Po), Pochampalli(Tk), krishnagiri(Dt) - 635201 Tamilnadu, India.';
+  const companyPhone = company?.phone || '+91 88707 19804 / +91 63827 92780';
+  const companyEmail = company?.email || 'sales@svgelectric.com';
+  const companyWebsite = company?.website || 'https://svgelectric.com';
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-sm overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
       {/* Container */}
       <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-4xl my-8 overflow-hidden flex flex-col max-h-[92vh]">
         {/* Modal Top Control Bar (Hidden when printing) */}
         <div className="print:hidden bg-slate-900 text-white px-6 py-4 flex items-center justify-between border-b border-slate-800 flex-shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-brand-600/30 border border-brand-500/40 flex items-center justify-center text-brand-400">
+            <div className="w-8 h-8 rounded-lg bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400">
               <Printer className="w-4 h-4" />
             </div>
             <div>
@@ -65,7 +89,7 @@ export const ProductPrintModal: React.FC<ProductPrintModalProps> = ({
                 type="checkbox"
                 checked={includePrice}
                 onChange={(e) => setIncludePrice(e.target.checked)}
-                className="rounded border-slate-600 text-brand-600 focus:ring-brand-500 w-3.5 h-3.5"
+                className="rounded border-slate-600 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5"
               />
               <span className="font-medium text-slate-200 select-none">
                 {includePrice ? 'Price: Included' : 'Price: Hidden (Technical Only)'}
@@ -75,7 +99,7 @@ export const ProductPrintModal: React.FC<ProductPrintModalProps> = ({
             {/* Print Button */}
             <button
               onClick={handlePrint}
-              className="inline-flex items-center gap-1.5 bg-brand-600 hover:bg-brand-500 active:bg-brand-700 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm transition-all"
+              className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm transition-all"
             >
               <Printer className="w-4 h-4" />
               <span>Print / Save PDF</span>
@@ -97,13 +121,13 @@ export const ProductPrintModal: React.FC<ProductPrintModalProps> = ({
             id="printable-product-sheet"
             className="bg-white border border-slate-200 shadow-lg p-8 sm:p-10 w-full max-w-[210mm] min-h-[297mm] text-slate-800 font-sans print:border-none print:shadow-none print:p-0 print:m-0 print:w-full print:max-w-none print:min-h-0"
           >
-            {/* Top Brand Accent Bar */}
-            <div className="h-2 bg-gradient-to-r from-slate-900 via-brand-700 to-red-600 mb-6 -mx-8 -mt-8 sm:-mx-10 sm:-mt-10 print:h-2" />
+            {/* Top Brand Accent Bar (Navy -> Royal Blue -> Indigo) */}
+            <div className="h-2 bg-gradient-to-r from-slate-900 via-blue-800 to-indigo-600 mb-6 -mx-8 -mt-8 sm:-mx-10 sm:-mt-10 print:h-2" />
 
             {/* Document Header with Logo and Company Info */}
             <div className="flex items-start justify-between border-b-2 border-slate-900 pb-5 mb-6">
               <div className="flex items-center gap-4">
-                <div className="bg-white p-1 rounded-lg border border-slate-200 flex-shrink-0">
+                <div className="bg-white p-1 rounded-lg border border-slate-200 flex-shrink-0 shadow-xs">
                   <img
                     src="/logo.jpg"
                     alt="ElectCare - Feel The Excellence"
@@ -112,32 +136,32 @@ export const ProductPrintModal: React.FC<ProductPrintModalProps> = ({
                 </div>
                 <div>
                   <h1 className="font-extrabold text-lg text-slate-900 tracking-tight uppercase">
-                    SVG ELECTRIC & CONTROL PRODUCTS
+                    {companyName}
                   </h1>
-                  <p className="text-[11px] text-slate-500 font-medium">
-                    SF No. 342/1, Trichy Road, Singanallur, Coimbatore - 641005, Tamil Nadu, India
+                  <p className="text-[11px] text-slate-600 font-medium">
+                    {companyAddress}
                   </p>
                   <p className="text-[10px] text-slate-500 font-mono mt-0.5">
-                    Phone: +91 94432 55678 • Email: sales@svgelectric.com • Web: https://svgelectric.com
+                    Phone: {companyPhone} • Email: {companyEmail} • Web: {companyWebsite}
                   </p>
                 </div>
               </div>
 
               <div className="text-right flex-shrink-0">
-                <span className="inline-block bg-slate-900 text-white font-mono text-[10px] uppercase font-bold px-2 py-0.5 rounded tracking-wider">
+                <span className="inline-block bg-slate-900 text-white font-mono text-[10px] uppercase font-bold px-2.5 py-0.5 rounded border border-slate-800 tracking-wider">
                   SPECIFICATION SHEET
                 </span>
-                <p className="text-[10px] text-slate-400 font-mono mt-1">
+                <p className="text-[10px] text-slate-500 font-mono mt-1">
                   Date: {format(new Date(), 'dd-MMM-yyyy')}
                 </p>
               </div>
             </div>
 
             {/* Product Title Banner */}
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="bg-slate-50 border-l-4 border-l-blue-600 border border-slate-200 rounded-xl p-5 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[10px] font-mono font-bold uppercase bg-brand-100 text-brand-800 px-2 py-0.5 rounded">
+                  <span className="text-[10px] font-mono font-bold uppercase bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
                     {product.category?.name || 'Switchboard / Control Panel'}
                   </span>
                   <span className="text-[10px] font-mono text-slate-500 font-bold">
@@ -156,11 +180,11 @@ export const ProductPrintModal: React.FC<ProductPrintModalProps> = ({
 
               {/* Optional Price Badge */}
               {includePrice && (
-                <div className="bg-white border-2 border-brand-500/40 rounded-xl p-3.5 text-right shadow-sm flex-shrink-0">
-                  <span className="text-[10px] font-mono uppercase font-bold text-slate-400 block tracking-wider">
+                <div className="bg-white border-2 border-blue-600/30 rounded-xl p-3.5 text-right shadow-sm flex-shrink-0">
+                  <span className="text-[10px] font-mono uppercase font-bold text-slate-500 block tracking-wider">
                     Price (Ex-Works)
                   </span>
-                  <span className="text-xl font-extrabold text-brand-700 font-mono block">
+                  <span className="text-xl font-extrabold text-blue-700 font-mono block">
                     {formatINR(product.price)}
                   </span>
                   <span className="text-[9px] text-slate-500 block mt-0.5">
@@ -276,9 +300,9 @@ export const ProductPrintModal: React.FC<ProductPrintModalProps> = ({
             </div>
 
             {/* Footer */}
-            <div className="mt-8 pt-3 border-t-2 border-slate-900 flex items-center justify-between text-[10px] font-mono text-slate-400">
-              <span>SVG ELECTRIC & CONTROL PRODUCTS • COIMBATORE</span>
-              <span>ENGINEERED FOR EXCELLENCE</span>
+            <div className="mt-8 pt-3 border-t-2 border-slate-900 flex items-center justify-between text-[10px] font-mono text-slate-500">
+              <span>{companyName} • KRISHNAGIRI</span>
+              <span>ELECTCARE • FEEL THE EXCELLENCE</span>
               <span>PAGE 1 OF 1</span>
             </div>
           </div>

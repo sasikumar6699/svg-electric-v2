@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { LogOut, PlusCircle, Search, Box } from 'lucide-react';
+import { LogOut, PlusCircle } from 'lucide-react';
 import Link from 'next/link';
 
 interface NavbarProps {
@@ -37,22 +37,14 @@ export const Navbar: React.FC<NavbarProps> = ({ user }) => {
       </div>
 
       <div className="flex items-center gap-4">
-        {/* Role-Specific Quick Action Button */}
-        {isAdmin ? (
+        {/* Admin Quick Action Button */}
+        {isAdmin && (
           <Link
             href="/admin/products"
-            className="flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-sm transition-all active:scale-95"
+            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-sm shadow-blue-600/20 transition-all active:scale-95"
           >
             <PlusCircle className="w-4 h-4" />
             <span>Add Product</span>
-          </Link>
-        ) : (
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-1.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-sm transition-all active:scale-95"
-          >
-            <Search className="w-4 h-4" />
-            <span>Search Products</span>
           </Link>
         )}
 

@@ -401,7 +401,7 @@ export default function AdminProductsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-bold">
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 font-bold">
               ADMIN PRODUCT MANAGEMENT
             </span>
           </div>
@@ -428,7 +428,7 @@ export default function AdminProductsPage() {
             title="Export all products with prices and specifications to Excel"
             className="inline-flex items-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-xs font-medium px-3 py-2 rounded-lg shadow-sm transition-all"
           >
-            <FileDown className="w-3.5 h-3.5 text-amber-600" />
+            <FileDown className="w-3.5 h-3.5 text-blue-600" />
             <span>Export Catalog</span>
           </button>
 
@@ -439,16 +439,16 @@ export default function AdminProductsPage() {
               setBulkResult(null);
               setIsBulkOpen(true);
             }}
-            className="inline-flex items-center gap-1.5 bg-white hover:bg-slate-50 text-brand-700 border border-brand-300 text-xs font-semibold px-3 py-2 rounded-lg shadow-sm transition-all"
+            className="inline-flex items-center gap-1.5 bg-white hover:bg-slate-50 text-blue-700 border border-blue-300 text-xs font-semibold px-3 py-2 rounded-lg shadow-sm transition-all cursor-pointer"
           >
-            <FileSpreadsheet className="w-3.5 h-3.5 text-brand-600" />
+            <FileSpreadsheet className="w-3.5 h-3.5 text-blue-600" />
             <span>Bulk Upload</span>
           </button>
 
           <button
             type="button"
             onClick={handleOpenCreate}
-            className="inline-flex items-center gap-1.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm transition-all"
+            className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm shadow-blue-600/20 transition-all active:scale-95 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Add Product</span>
@@ -465,7 +465,7 @@ export default function AdminProductsPage() {
             placeholder="Search code, model, or specs..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:ring-2 focus:ring-brand-500"
+            className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
@@ -474,7 +474,7 @@ export default function AdminProductsPage() {
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="text-xs border border-slate-300 rounded-lg px-3 py-1.5 focus:ring-1 focus:ring-brand-500 bg-white"
+            className="text-xs border border-slate-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
           >
             <option value="">-- All Categories --</option>
             {categories.map((c) => (
@@ -506,7 +506,7 @@ export default function AdminProductsPage() {
               {loading ? (
                 <tr>
                   <td colSpan={8} className="text-center py-12 text-slate-500">
-                    <Loader2 className="w-6 h-6 animate-spin text-brand-600 mx-auto mb-2" />
+                    <Loader2 className="w-6 h-6 animate-spin text-blue-600 mx-auto mb-2" />
                     <span>Loading products catalog...</span>
                   </td>
                 </tr>
@@ -561,7 +561,7 @@ export default function AdminProductsPage() {
                           {specs.slice(0, 3).map((s, i) => (
                             <span
                               key={i}
-                              className="text-[10px] bg-brand-50 text-brand-700 border border-brand-200/60 px-1.5 py-0.5 rounded font-mono truncate max-w-[130px]"
+                              className="text-[10px] bg-blue-50 text-blue-700 border border-blue-200/60 px-1.5 py-0.5 rounded font-mono truncate max-w-[130px]"
                               title={`${s.name}: ${s.value}`}
                             >
                               <strong className="font-medium text-slate-500">{s.name}:</strong> {s.value}
@@ -587,12 +587,12 @@ export default function AdminProductsPage() {
                             href={p.fileUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-[11px] font-mono text-brand-600 hover:text-brand-800 bg-brand-50 hover:bg-brand-100 px-2 py-0.5 rounded border border-brand-200 transition-colors"
+                            className="inline-flex items-center gap-1 text-[11px] font-mono text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded border border-blue-200 transition-colors"
                           >
                             {p.fileType === 'PDF' ? (
                               <FileText className="w-3.5 h-3.5 text-rose-600" />
                             ) : p.fileType === 'IMAGE' ? (
-                              <ImageIcon className="w-3.5 h-3.5 text-brand-600" />
+                              <ImageIcon className="w-3.5 h-3.5 text-blue-600" />
                             ) : (
                               <FileText className="w-3.5 h-3.5 text-blue-600" />
                             )}
@@ -629,7 +629,7 @@ export default function AdminProductsPage() {
                           <button
                             onClick={() => handleOpenPrint(p)}
                             title="Print Technical Spec Sheet"
-                            className="p-1.5 text-slate-500 hover:text-brand-600 hover:bg-brand-50 rounded-md transition-colors"
+                            className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
                           >
                             <Printer className="w-4 h-4" />
                           </button>
@@ -638,7 +638,7 @@ export default function AdminProductsPage() {
                           <button
                             onClick={() => handleOpenEdit(p)}
                             title="Edit Product Entry"
-                            className="p-1.5 text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded-md transition-colors"
+                            className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
                           >
                             <Edit className="w-4 h-4" />
                           </button>
@@ -669,7 +669,7 @@ export default function AdminProductsPage() {
             {/* Modal Header */}
             <div className="bg-slate-900 text-white px-6 py-4 flex items-center justify-between border-b border-slate-800">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-brand-600/30 border border-brand-500/40 flex items-center justify-center text-brand-400">
+                <div className="w-8 h-8 rounded-lg bg-blue-600/30 border border-blue-500/40 flex items-center justify-center text-blue-400">
                   <Box className="w-4 h-4" />
                 </div>
                 <div>
@@ -683,7 +683,7 @@ export default function AdminProductsPage() {
               </div>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="p-1 text-slate-400 hover:text-white rounded-lg transition-colors"
+                className="p-1 text-slate-400 hover:text-white rounded-lg transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -703,7 +703,7 @@ export default function AdminProductsPage() {
               {/* 1. Basic Information */}
               <div className="space-y-3 border-b border-slate-200 pb-4">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 font-mono flex items-center gap-1.5">
-                  <Layers className="w-3.5 h-3.5 text-brand-600" />
+                  <Layers className="w-3.5 h-3.5 text-blue-600" />
                   1. Basic Details
                 </h4>
 
@@ -716,7 +716,7 @@ export default function AdminProductsPage() {
                       value={categoryId}
                       onChange={(e) => setCategoryId(e.target.value)}
                       required
-                      className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 bg-white focus:ring-2 focus:ring-brand-500 font-medium"
+                      className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
                     >
                       {categories.map((c) => (
                         <option key={c.id} value={c.id}>
@@ -730,7 +730,7 @@ export default function AdminProductsPage() {
                     <label className="block text-xs font-semibold text-slate-700 mb-1">
                       Product Code <span className="text-rose-500">*</span>
                     </label>
-                    <div className="flex rounded-lg border border-slate-300 focus-within:ring-2 focus-within:ring-brand-500 focus-within:border-brand-500 overflow-hidden shadow-sm">
+                    <div className="flex rounded-lg border border-slate-300 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 overflow-hidden shadow-sm">
                       <span className="inline-flex items-center px-2.5 bg-slate-100 text-slate-700 font-mono text-xs font-bold border-r border-slate-300 select-none">
                         {currentPrefix}
                       </span>
@@ -767,7 +767,7 @@ export default function AdminProductsPage() {
                       placeholder="e.g. Industrial Motor Control Center 800A"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 font-medium"
+                      className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
                     />
                   </div>
 
@@ -785,7 +785,7 @@ export default function AdminProductsPage() {
                         placeholder="e.g. 385000"
                         value={price}
                         onChange={(e) => setPrice(e.target.value === '' ? '' : Number(e.target.value))}
-                        className="w-full pl-7 pr-3 py-1.5 text-xs font-mono font-bold rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500"
+                        className="w-full pl-7 pr-3 py-1.5 text-xs font-mono font-bold rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                     {typeof price === 'number' && price > 0 && (
@@ -805,7 +805,7 @@ export default function AdminProductsPage() {
                     placeholder="Short description of enclosure, wiring, component make, or applications..."
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500"
+                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -825,7 +825,7 @@ export default function AdminProductsPage() {
                   <button
                     type="button"
                     onClick={() => handleAddSpecRow()}
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-600 hover:text-brand-700 bg-brand-50 px-2.5 py-1 rounded-md border border-brand-200 transition-colors"
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 px-2.5 py-1 rounded-md border border-blue-200 transition-colors cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Add Row</span>
@@ -841,7 +841,7 @@ export default function AdminProductsPage() {
                         key={sug}
                         type="button"
                         onClick={() => handleAddSpecRow(sug)}
-                        className="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-0.5 rounded transition-colors"
+                        className="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-0.5 rounded transition-colors cursor-pointer"
                       >
                         + {sug}
                       </button>
@@ -863,19 +863,19 @@ export default function AdminProductsPage() {
                           placeholder="Parameter Name (e.g. Current Rating)"
                           value={spec.name}
                           onChange={(e) => handleUpdateSpec(idx, 'name', e.target.value)}
-                          className="w-1/2 px-2.5 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-1 focus:ring-brand-500 font-medium"
+                          className="w-1/2 px-2.5 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium"
                         />
                         <input
                           type="text"
                           placeholder="Value (e.g. 800A)"
                           value={spec.value}
                           onChange={(e) => handleUpdateSpec(idx, 'value', e.target.value)}
-                          className="w-1/2 px-2.5 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-1 focus:ring-brand-500 font-mono"
+                          className="w-1/2 px-2.5 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono"
                         />
                         <button
                           type="button"
                           onClick={() => handleRemoveSpec(idx)}
-                          className="p-1.5 text-slate-400 hover:text-rose-600 rounded-md transition-colors"
+                          className="p-1.5 text-slate-400 hover:text-rose-600 rounded-md transition-colors cursor-pointer"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -917,7 +917,7 @@ export default function AdminProductsPage() {
                           href={fileUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-[10px] text-brand-600 hover:underline inline-flex items-center gap-0.5 mt-0.5"
+                          className="text-[10px] text-blue-600 hover:underline inline-flex items-center gap-0.5 mt-0.5"
                         >
                           <span>Open file</span>
                           <ExternalLink className="w-2.5 h-2.5" />
@@ -928,13 +928,13 @@ export default function AdminProductsPage() {
                     <button
                       type="button"
                       onClick={handleRemoveFile}
-                      className="p-1.5 text-slate-400 hover:text-rose-600 rounded-md transition-colors"
+                      className="p-1.5 text-slate-400 hover:text-rose-600 rounded-md transition-colors cursor-pointer"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 ) : (
-                  <div className="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:border-brand-400 transition-colors">
+                  <div className="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:border-blue-400 transition-colors">
                     <input
                       ref={fileInputRef}
                       type="file"
@@ -948,7 +948,7 @@ export default function AdminProductsPage() {
                       className="cursor-pointer flex flex-col items-center justify-center gap-1.5"
                     >
                       {uploadingFile ? (
-                        <Loader2 className="w-6 h-6 text-brand-600 animate-spin" />
+                        <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
                       ) : (
                         <Upload className="w-6 h-6 text-slate-400" />
                       )}
@@ -970,7 +970,7 @@ export default function AdminProductsPage() {
                     type="checkbox"
                     checked={active}
                     onChange={(e) => setActive(e.target.checked)}
-                    className="rounded border-slate-300 text-brand-600 focus:ring-brand-500 w-4 h-4"
+                    className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4"
                   />
                   <span className="text-xs font-semibold text-slate-700">
                     Product Active & Searchable by Sales
@@ -983,14 +983,14 @@ export default function AdminProductsPage() {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving || uploadingFile}
-                  className="inline-flex items-center gap-2 px-5 py-2 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-lg shadow-sm transition-all disabled:opacity-50"
+                  className="inline-flex items-center gap-2 px-5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm shadow-blue-600/20 transition-all disabled:opacity-50 cursor-pointer"
                 >
                   {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   <span>{editingProduct ? 'Update Product' : 'Save Product Entry'}</span>
@@ -1008,7 +1008,7 @@ export default function AdminProductsPage() {
             {/* Modal Header */}
             <div className="bg-slate-900 text-white px-6 py-4 flex items-center justify-between border-b border-slate-800">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-brand-600/30 border border-brand-500/40 flex items-center justify-center text-brand-400">
+                <div className="w-8 h-8 rounded-lg bg-blue-600/30 border border-blue-500/40 flex items-center justify-center text-blue-400">
                   <FileSpreadsheet className="w-4 h-4" />
                 </div>
                 <div>
@@ -1023,7 +1023,7 @@ export default function AdminProductsPage() {
               <button
                 type="button"
                 onClick={() => setIsBulkOpen(false)}
-                className="p-1 text-slate-400 hover:text-white rounded-lg transition-colors"
+                className="p-1 text-slate-400 hover:text-white rounded-lg transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1032,17 +1032,17 @@ export default function AdminProductsPage() {
             {/* Modal Form */}
             <form onSubmit={handleBulkUpload} className="p-6 space-y-4">
               {/* Template Download Box */}
-              <div className="bg-brand-50 border border-brand-200 rounded-xl p-3.5 flex items-center justify-between">
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-3.5 flex items-center justify-between">
                 <div>
-                  <h5 className="text-xs font-bold text-brand-900">Need the correct Excel format?</h5>
-                  <p className="text-[11px] text-brand-700 mt-0.5">
+                  <h5 className="text-xs font-bold text-blue-900">Need the correct Excel format?</h5>
+                  <p className="text-[11px] text-blue-700 mt-0.5">
                     Download the pre-formatted template with sample electrical products.
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={handleDownloadTemplate}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors flex-shrink-0"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-sm shadow-blue-600/20 transition-colors flex-shrink-0 cursor-pointer"
                 >
                   <Download className="w-3.5 h-3.5" />
                   <span>Template</span>
@@ -1054,7 +1054,7 @@ export default function AdminProductsPage() {
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                   Select Excel or CSV File (.xlsx, .xls, .csv)
                 </label>
-                <div className="border-2 border-dashed border-slate-300 rounded-xl p-5 text-center hover:border-brand-400 transition-colors bg-slate-50/50">
+                <div className="border-2 border-dashed border-slate-300 rounded-xl p-5 text-center hover:border-blue-400 transition-colors bg-slate-50/50">
                   <input
                     ref={bulkFileInputRef}
                     type="file"
@@ -1070,7 +1070,7 @@ export default function AdminProductsPage() {
                     htmlFor="bulk-excel-upload"
                     className="cursor-pointer flex flex-col items-center justify-center gap-1.5"
                   >
-                    <Upload className="w-6 h-6 text-brand-600" />
+                    <Upload className="w-6 h-6 text-blue-600" />
                     <span className="text-xs font-semibold text-slate-800">
                       {bulkFile ? bulkFile.name : 'Click to select spreadsheet'}
                     </span>
@@ -1120,14 +1120,14 @@ export default function AdminProductsPage() {
                 <button
                   type="button"
                   onClick={() => setIsBulkOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
                 >
                   Close
                 </button>
                 <button
                   type="submit"
                   disabled={!bulkFile || bulkUploading}
-                  className="inline-flex items-center gap-2 px-5 py-2 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-lg shadow-sm transition-all disabled:opacity-50"
+                  className="inline-flex items-center gap-2 px-5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm shadow-blue-600/20 transition-all disabled:opacity-50 cursor-pointer"
                 >
                   {bulkUploading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   <span>{bulkUploading ? 'Importing...' : 'Upload & Import'}</span>

@@ -70,7 +70,7 @@ export default async function ReportsPage() {
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
           <p className="text-[11px] font-mono uppercase text-slate-400 font-semibold">Active Estimations</p>
           <p className="text-2xl font-bold text-brand-600 mt-1">{totalEstimations}</p>
-          <p className="text-[11px] text-slate-500 mt-0.5">Drafts and finalized quotations</p>
+          <p className="text-[11px] text-slate-500 mt-0.5">Drafts and finalized estimations</p>
         </div>
 
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
@@ -124,7 +124,7 @@ export default async function ReportsPage() {
               <div key={idx} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 border border-slate-100 text-xs">
                 <div>
                   <span className="font-bold text-slate-800 block truncate max-w-xs">{tc.companyName}</span>
-                  <span className="text-[11px] text-slate-400">{tc._count.id} quotation(s)</span>
+                  <span className="text-[11px] text-slate-400">{tc._count.id} estimation(s)</span>
                 </div>
                 <span className="font-mono font-bold text-emerald-600 text-sm">
                   {formatINR(tc._sum.grandTotal || 0)}

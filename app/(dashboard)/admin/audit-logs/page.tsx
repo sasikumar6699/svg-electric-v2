@@ -41,7 +41,7 @@ export default function AuditLogsPage() {
         </div>
         <h1 className="text-xl font-bold text-slate-900 tracking-tight">System Audit Trail</h1>
         <p className="text-xs text-slate-500 mt-0.5">
-          Immutable logging of user authentication, catalog modifications, price updates, and quotation generation.
+          Immutable logging of user authentication, catalog modifications, price updates, and estimation generation.
         </p>
       </div>
 

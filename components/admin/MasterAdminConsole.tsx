@@ -488,7 +488,7 @@ export function MasterAdminConsole({
               Price and Product Finder
             </h1>
             <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-3xl leading-relaxed">
-              Ensuring quotation readiness through master catalog integrity, controlled price matrices, actionable asset completion, and administrative audit trails.
+              Ensuring estimation readiness through master catalog integrity, controlled price matrices, actionable asset completion, and administrative audit trails.
             </p>
           </div>
 
@@ -772,7 +772,7 @@ export function MasterAdminConsole({
             </div>
 
             <p className="text-[11px] text-slate-500 mt-2 mb-3">
-              Immutable logging of catalog adjustments, price revisions, and quotation issuances.
+              Immutable logging of catalog adjustments, price revisions, and estimation issuances.
             </p>
 
             <div className="space-y-3 max-h-[460px] overflow-y-auto pr-1">

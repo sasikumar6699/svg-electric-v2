@@ -84,7 +84,8 @@ model ProductCategory {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  products     Product[]
+  products      Product[]
+  finishedGoods FinishedGood[]
 }
 
 model Product {
@@ -324,4 +325,138 @@ model AuditLog {
   @@index([entity, entityId])
   @@index([userId])
   @@index([createdAt])
+}
+
+// Global Bought-Out Component Library (10,000+ items)
+model ComponentMaster {
+  id            String       @id @default(uuid())
+  itemCode      String       @unique
+  description   String
+  rating        String?
+  typeCode      String?
+  make          String       // ABB, Siemens, Schneider, Mitsubishi, Polycab, Elmex, etc.
+  category      String       // Switchgear, Drive, Automation, Cables, Hardware
+  unit          String       // Nos, Mtrs, Set, Kg
+  unitPrice     Float
+  listPrice     Float?       // MRP (List Price)
+  finalPrice    Float?       // Final Price (10% discount off MRP by default)
+  hsnCode       String?      @default("8537")
+  gstRate       Float        @default(18.0)
+  active        Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  bomItems      FgBomItem[]
+
+  @@index([itemCode])
+  @@index([make])
+  @@index([category])
+}
+
+// Master Finished Good (FG) Product Model
+model FinishedGood {
+  id                    String              @id @default(uuid())
+  modelNumber           String              @unique // e.g. SVG-DC-680A-STD
+  name                  String
+  categoryId            String
+  category              ProductCategory     @relation(fields: [categoryId], references: [id])
+  description           String?
+  
+  // 4-Stage Costing Breakdown
+  bomMaterialCost       Float               @default(0.0) // Sum of all bought-out items
+  fabricationCost       Float               @default(0.0) // Stage 1: Enclosure & Sheet Metal
+  busbarCost            Float               @default(0.0) // Stage 2: Busbars & Insulators
+  wiringCost            Float               @default(0.0) // Stage 3: Cables & Termination Labor
+  netManufacturingCost  Float               @default(0.0) // Total Direct Cost (BOM + Fab + Busbar + Wire)
+  
+  // Stage 4 Final Charges
+  fatTestingCost        Float               @default(0.0)
+  designEngineeringCost Float               @default(0.0)
+  overheadCost          Float               @default(0.0)
+  profitMarginPercent   Float               @default(15.0)
+  finalExWorksPrice     Float               @default(0.0) // Selling Price before Tax
+  gstAmount             Float               @default(0.0)
+  finalGrossPrice       Float               @default(0.0) // Price with GST
+  
+  // Enclosure Physical Specs
+  enclosureHeight       Float?              // mm
+  enclosureWidth        Float?              // mm
+  enclosureDepth        Float?              // mm
+  ipRating              String?             @default("IP54")
+  formRating            String?             @default("Form 4B")
+  
+  // Relational Connections
+  bomItems              FgBomItem[]
+  variants              FgVariantDimension[]
+  active                Boolean             @default(true)
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  @@index([modelNumber])
+  @@index([categoryId])
+}
+
+// BOM Line Items linked to Finished Good
+model FgBomItem {
+  id              String           @id @default(uuid())
+  finishedGoodId  String
+  finishedGood    FinishedGood     @relation(fields: [finishedGoodId], references: [id], onDelete: Cascade)
+  componentId     String?
+  component       ComponentMaster? @relation(fields: [componentId], references: [id])
+  
+  sectionName     String           // "Main Control Panel", "Marshalling Box", "HMI Box"
+  sNo             Int
+  description     String
+  rating          String?
+  typeCode        String?
+  make            String
+  unit            String
+  quantity        Float
+  listPrice       Float?           @default(0.0) // MRP
+  unitPrice       Float            // Final price
+  totalAmount     Float
+  gstAmount       Float            @default(0.0)
+  grandTotal      Float            @default(0.0)
+
+  @@index([finishedGoodId])
+  @@index([sectionName])
+}
+
+// Variant Dimension (e.g. "PLC Make", "Busbar Conductor", "Current Rating")
+model FgVariantDimension {
+  id              String              @id @default(uuid())
+  finishedGoodId  String
+  finishedGood    FinishedGood        @relation(fields: [finishedGoodId], references: [id], onDelete: Cascade)
+  dimensionName   String              // e.g. "PLC & Automation Make"
+  displayOrder    Int                 @default(1)
+  options         FgVariantOption[]
+
+  @@index([finishedGoodId])
+}
+
+// Options within each Variant Dimension
+model FgVariantOption {
+  id              String              @id @default(uuid())
+  dimensionId     String
+  dimension       FgVariantDimension  @relation(fields: [dimensionId], references: [id], onDelete: Cascade)
+  optionName      String              // e.g. "Siemens S7-1200 + 10\" Comfort HMI"
+  isDefault       Boolean             @default(false)
+  priceDelta      Float               @default(0) // Added or deducted amount (e.g. +55000)
+  description     String?
+  displayOrder    Int                 @default(1)
+
+  @@index([dimensionId])
+}
+
+// Master library of reusable panel upgradation variant templates
+model VariantMasterTemplate {
+  id            String   @id @default(uuid())
+  categoryCode  String   @default("ALL") // "ALL", "ACD", "MCC", "PLC", "APFC", "PCC"
+  dimensionName String   // e.g. "PLC & Automation Controller", "Busbar Conductor & Plating"
+  description   String?
+  displayOrder  Int      @default(1)
+  options       Json     // Array of { optionName: string, isDefault: boolean, priceDelta: number, description?: string }
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([categoryCode])
 }

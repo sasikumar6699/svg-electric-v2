@@ -16,6 +16,7 @@ import {
   Loader2,
   ChevronLeft,
   ChevronRight,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -90,18 +91,27 @@ export default function EstimationsListPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">Estimations Directory</h1>
+          <h1 className="text-xl font-bold text-slate-900 tracking-tight">Recent Estimations Directory</h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Search, filter, view, and manage all sales estimations and quotations.
+            Search, filter, view, and manage all sales estimations.
           </p>
         </div>
-        <Link
-          href="/estimations/new"
-          className="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm transition-all"
-        >
-          <PlusCircle className="w-4 h-4" />
-          <span>New Estimation</span>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/sales/configurator"
+            className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm transition-all"
+          >
+            <SlidersHorizontal className="w-4 h-4" />
+            <span>Search Products & Variants</span>
+          </Link>
+          <Link
+            href="/estimations/new"
+            className="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold px-3.5 py-2 rounded-lg border border-slate-700 transition-all"
+          >
+            <PlusCircle className="w-4 h-4" />
+            <span>New Estimation</span>
+          </Link>
+        </div>
       </div>
 
       {/* Filter Bar */}
@@ -123,6 +133,7 @@ export default function EstimationsListPage() {
         <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0">
           {[
             { id: 'ALL', label: 'All' },
+            { id: 'PDF_GENERATED', label: 'Estimation Generated' },
             { id: 'PENDING_APPROVAL', label: 'Pending Approval' },
             { id: 'APPROVED', label: 'Approved' },
             { id: 'DRAFT', label: 'Drafts' },

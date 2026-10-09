@@ -8,77 +8,88 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('q') || searchParams.get('search') || '';
     const categoryId = searchParams.get('categoryId') || '';
-    const specName = searchParams.get('specName') || '';
-    const specValue = searchParams.get('specValue') || '';
     const minPrice = searchParams.get('minPrice') ? Number(searchParams.get('minPrice')) : undefined;
     const maxPrice = searchParams.get('maxPrice') ? Number(searchParams.get('maxPrice')) : undefined;
 
-    const where: any = {
-      active: true,
-    };
-
-    if (categoryId) {
-      where.categoryId = categoryId;
+    // Fetch Finished Goods
+    const fgWhere: any = { active: true };
+    if (categoryId) fgWhere.categoryId = categoryId;
+    if (search.trim()) {
+      fgWhere.OR = [
+        { modelNumber: { contains: search, mode: 'insensitive' } },
+        { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ];
     }
 
-    if (minPrice !== undefined || maxPrice !== undefined) {
-      where.price = {};
-      if (minPrice !== undefined) where.price.gte = minPrice;
-      if (maxPrice !== undefined) where.price.lte = maxPrice;
-    }
-
-    // Base query
-    let products = await db.product.findMany({
-      where,
+    const finishedGoods = await db.finishedGood.findMany({
+      where: fgWhere,
       include: {
         category: true,
+        bomItems: {
+          select: { id: true },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });
 
-    // Client-level keyword filtering across name, code, description, and JSON specifications
+    // Map Finished Goods to standard product shape for search console
+    const mappedFgProducts = finishedGoods.map((fg) => {
+      const specs = [
+        { name: 'Enclosure Size', value: `${fg.enclosureHeight || 2000}×${fg.enclosureWidth || 1000}×${fg.enclosureDepth || 600} mm` },
+        { name: 'Protection', value: fg.ipRating || 'IP54' },
+        { name: 'Form Factor', value: fg.formRating || 'Form 2B' },
+        { name: 'BOM Density', value: `${fg.bomItems?.length || 0} Materials` },
+      ];
+
+      return {
+        id: fg.id,
+        productCode: fg.modelNumber,
+        name: fg.name,
+        price: fg.finalGrossPrice,
+        basePrice: fg.finalExWorksPrice,
+        categoryId: fg.categoryId,
+        category: fg.category ? { id: fg.category.id, name: fg.category.name, code: fg.category.code } : undefined,
+        description: fg.description,
+        specifications: specs,
+        fileUrl: null,
+        fileName: null,
+        fileType: null,
+        fileSize: null,
+        active: fg.active,
+        createdAt: fg.createdAt.toISOString(),
+        updatedAt: fg.updatedAt.toISOString(),
+        isFinishedGood: true,
+        configuratorUrl: `/sales/configurator?modelId=${fg.id}`,
+      };
+    });
+
+    // Also fetch legacy products if any remain
+    const prodWhere: any = { active: true };
+    if (categoryId) prodWhere.categoryId = categoryId;
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      prodWhere.price = {};
+      if (minPrice !== undefined) prodWhere.price.gte = minPrice;
+      if (maxPrice !== undefined) prodWhere.price.lte = maxPrice;
+    }
+
+    let legacyProducts = await db.product.findMany({
+      where: prodWhere,
+      include: { category: true },
+      orderBy: { createdAt: 'desc' },
+    });
+
     if (search.trim()) {
       const qLower = search.toLowerCase().trim();
-      products = products.filter((p) => {
+      legacyProducts = legacyProducts.filter((p) => {
         const matchName = p.name.toLowerCase().includes(qLower);
         const matchCode = p.productCode.toLowerCase().includes(qLower);
         const matchDesc = p.description?.toLowerCase().includes(qLower) || false;
-        const matchCat = p.category?.name.toLowerCase().includes(qLower) || false;
-
-        // Check specs
-        let matchSpec = false;
-        if (Array.isArray(p.specifications)) {
-          matchSpec = p.specifications.some((s: any) =>
-            String(s.name || '').toLowerCase().includes(qLower) ||
-            String(s.value || '').toLowerCase().includes(qLower)
-          );
-        }
-
-        return matchName || matchCode || matchDesc || matchCat || matchSpec;
+        return matchName || matchCode || matchDesc;
       });
     }
 
-    // Specification-specific filter
-    if (specName && specValue) {
-      const targetName = specName.toLowerCase().trim();
-      const targetVal = specValue.toLowerCase().trim();
-      products = products.filter((p) => {
-        if (!Array.isArray(p.specifications)) return false;
-        return p.specifications.some(
-          (s: any) =>
-            String(s.name || '').toLowerCase().trim() === targetName &&
-            String(s.value || '').toLowerCase().trim().includes(targetVal)
-        );
-      });
-    } else if (specValue && !specName) {
-      const targetVal = specValue.toLowerCase().trim();
-      products = products.filter((p) => {
-        if (!Array.isArray(p.specifications)) return false;
-        return p.specifications.some((s: any) =>
-          String(s.value || '').toLowerCase().trim().includes(targetVal)
-        );
-      });
-    }
+    const allCombined = [...mappedFgProducts, ...legacyProducts];
 
     // Fetch categories for quick filter chips
     const categories = await db.productCategory.findMany({
@@ -86,39 +97,16 @@ export async function GET(request: Request) {
       orderBy: { displayOrder: 'asc' },
     });
 
-    // Aggregate unique specifications for quick filter pills
-    const allProducts = await db.product.findMany({
-      where: { active: true },
-      select: { specifications: true },
-    });
-
-    const specAggregates: Record<string, Set<string>> = {};
-    for (const p of allProducts) {
-      if (Array.isArray(p.specifications)) {
-        for (const s of p.specifications as any[]) {
-          if (s.name && s.value) {
-            const key = String(s.name).trim();
-            const val = String(s.value).trim();
-            if (!specAggregates[key]) {
-              specAggregates[key] = new Set<string>();
-            }
-            specAggregates[key].add(val);
-          }
-        }
-      }
-    }
-
-    const availableFilters = Object.entries(specAggregates).map(([name, valuesSet]) => ({
-      name,
-      values: Array.from(valuesSet).slice(0, 10), // Limit top 10 unique values
-    }));
-
     return NextResponse.json({
       success: true,
-      count: products.length,
-      products,
+      count: allCombined.length,
+      products: allCombined,
       categories,
-      availableFilters,
+      availableFilters: [
+        { name: 'Enclosure Size', values: ['2000×1000×600 mm', '1800×900×500 mm', '2200×1600×800 mm'] },
+        { name: 'Protection', values: ['IP54', 'IP52', 'IP55'] },
+        { name: 'Form Factor', values: ['Form 2B', 'Form 4B'] },
+      ],
     });
   } catch (error: any) {
     console.error('Search API error:', error);

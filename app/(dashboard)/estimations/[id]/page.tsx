@@ -14,6 +14,7 @@ import {
   Tag,
   Wrench,
   Truck,
+  Send,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ApprovalActionBar } from '@/components/estimations/ApprovalActionBar';
@@ -37,6 +38,19 @@ export default async function EstimationDetailPage({ params }: { params: { id: s
   if (!estimation) {
     notFound();
   }
+
+  const whatsappMsg = encodeURIComponent(
+    `*SVG ELECTRIC & CONTROL PRODUCTS*\n` +
+    `*Commercial Estimation Summary*\n` +
+    `---------------------------------\n` +
+    `*Estimation No:* ${estimation.estimationNumber}\n` +
+    `*Customer:* ${estimation.companyName}\n` +
+    `*Date:* ${format(new Date(estimation.date), 'dd-MMM-yyyy')}\n` +
+    `*Taxable Amount:* ₹${estimation.taxableAmount.toLocaleString('en-IN')}\n` +
+    `*Total Value (incl. GST):* ₹${estimation.grandTotal.toLocaleString('en-IN')}\n` +
+    `*Validity:* 30 Days from issue\n` +
+    `*Contact:* +91 88707 19804 / sales@svgelectric.com`
+  );
 
   return (
     <div className="space-y-6 pb-20">
@@ -103,13 +117,24 @@ export default async function EstimationDetailPage({ params }: { params: { id: s
           )}
 
           <a
+            href={`https://api.whatsapp.com/send?text=${whatsappMsg}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition-all active:scale-95"
+            title="Share Estimation Summary via WhatsApp"
+          >
+            <Send className="w-3.5 h-3.5" />
+            <span>Share via WhatsApp</span>
+          </a>
+
+          <a
             href={`/api/estimations/${estimation.id}/pdf`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold shadow-sm transition-all"
           >
             <FileDown className="w-3.5 h-3.5" />
-            <span>Download PDF Quotation</span>
+            <span>Download PDF Estimation</span>
           </a>
         </div>
       </div>

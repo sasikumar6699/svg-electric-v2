@@ -10,16 +10,18 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const action = searchParams.get('action');
     const entity = searchParams.get('entity');
+    const userId = searchParams.get('userId');
 
     const where: any = {};
     if (action) where.action = action;
     if (entity) where.entity = entity;
+    if (userId) where.userId = userId;
 
     const logs = await db.auditLog.findMany({
       where,
-      include: { user: { select: { name: true, email: true } } },
+      include: { user: { select: { id: true, name: true, email: true, role: true } } },
       orderBy: { createdAt: 'desc' },
-      take: 100,
+      take: 250,
     });
 
     return NextResponse.json({ logs });

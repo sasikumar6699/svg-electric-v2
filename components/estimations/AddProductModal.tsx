@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { formatINR } from '@/lib/utils';
-import { X, AlertCircle, Loader2, Sparkles, Edit3, CheckCircle2, ChevronDown } from 'lucide-react';
+import { X, AlertCircle, Loader2, Settings2, Edit3, CheckCircle2, ChevronDown } from 'lucide-react';
 
 interface AddProductModalProps {
   isOpen: boolean;
@@ -412,7 +412,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                     <div className="border-b border-slate-200 pb-3">
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-bold text-slate-800 text-[11px] uppercase tracking-wider flex items-center gap-1.5">
-                          <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                          <Settings2 className="w-3.5 h-3.5 text-blue-600" />
                           Individual Specification Cost Breakdown
                         </span>
                         <span className="text-[10px] font-mono text-slate-500">

@@ -22,7 +22,7 @@ export async function GET(request: Request) {
     if (user.role === 'SALES_USER') {
       where.OR = [
         { createdById: user.userId },
-        { status: { in: [EstimationStatus.PENDING_APPROVAL, EstimationStatus.REVISION_REQUESTED, EstimationStatus.APPROVED, EstimationStatus.REJECTED, EstimationStatus.FINALIZED, EstimationStatus.PDF_GENERATED] } },
+        { status: { in: [EstimationStatus.PENDING_APPROVAL, EstimationStatus.REVISION_REQUESTED, EstimationStatus.APPROVED, EstimationStatus.REJECTED, EstimationStatus.FINALIZED, EstimationStatus.PDF_GENERATED, EstimationStatus.DRAFT] } },
       ];
     }
 

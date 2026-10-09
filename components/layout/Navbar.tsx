@@ -1,9 +1,9 @@
 'use client';
 
 import React from 'react';
-import { useRouter } from 'next/navigation';
-import { LogOut, PlusCircle } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface NavbarProps {
   user: {
@@ -37,17 +37,6 @@ export const Navbar: React.FC<NavbarProps> = ({ user }) => {
       </div>
 
       <div className="flex items-center gap-4">
-        {/* Admin Quick Action Button */}
-        {isAdmin && (
-          <Link
-            href="/admin/products"
-            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-sm shadow-blue-600/20 transition-all active:scale-95"
-          >
-            <PlusCircle className="w-4 h-4" />
-            <span>Add Product</span>
-          </Link>
-        )}
-
         {/* User Badge */}
         <div className="flex items-center gap-2 pl-3 border-l border-slate-200">
           <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-700 text-xs font-bold font-mono">

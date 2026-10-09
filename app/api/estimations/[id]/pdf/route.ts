@@ -99,7 +99,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
       },
     };
 
-    const pdfBuffer = generateEstimationPDF(pdfData);
+    const pdfBuffer = await generateEstimationPDF(pdfData);
 
     // Update status if it was draft
     if (estimation.status === EstimationStatus.DRAFT) {

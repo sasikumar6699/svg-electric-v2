@@ -2,8 +2,12 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'SVG Electric - Estimation Management System',
-  description: 'Internal Estimation & Quotation Management Platform for SVG Electric & Control Products',
+  title: 'SVG Electric™ | Enterprise Switchboard Estimation Suite',
+  description: 'Proprietary Low-Voltage Switchgear & Power Distribution Board Sizing and Commercial Estimation Platform',
+  icons: {
+    icon: '/logo.jpg',
+    apple: '/logo.jpg',
+  },
 };
 
 export default function RootLayout({

@@ -1,12 +1,101 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { UserCog, Plus, ShieldCheck, User, CheckCircle2, XCircle, Loader2, X, Edit, KeyRound } from 'lucide-react';
+import {
+  UserCog,
+  Plus,
+  ShieldCheck,
+  User,
+  CheckCircle2,
+  XCircle,
+  Loader2,
+  X,
+  Edit,
+  KeyRound,
+  History,
+  RefreshCw,
+  Search,
+  Filter,
+} from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // User Log History State
+  const [isLogModalOpen, setIsLogModalOpen] = useState(false);
+  const [selectedLogUserId, setSelectedLogUserId] = useState<string>('');
+  const [userLogs, setUserLogs] = useState<any[]>([]);
+  const [loadingLogs, setLoadingLogs] = useState(false);
+
+  const fetchUserLogs = async (userIdToFetch?: string) => {
+    setLoadingLogs(true);
+    try {
+      const targetId = userIdToFetch !== undefined ? userIdToFetch : selectedLogUserId;
+      const q = new URLSearchParams();
+      if (targetId) q.set('userId', targetId);
+
+      const res = await fetch(`/api/admin/audit-logs?${q.toString()}`);
+      if (res.ok) {
+        const data = await res.json();
+        setUserLogs(data.logs || []);
+      }
+    } catch (err) {
+      console.error('Failed to load user logs', err);
+    } finally {
+      setLoadingLogs(false);
+    }
+  };
+
+  const handleOpenLogs = (userId?: string) => {
+    const id = userId || '';
+    setSelectedLogUserId(id);
+    setIsLogModalOpen(true);
+    fetchUserLogs(id);
+  };
+
+  const selectedLogUser = users.find((u) => u.id === selectedLogUserId) || null;
+
+  const formatTimestamp = (val: any) => {
+    if (!val) return '-';
+    try {
+      const d = new Date(val);
+      if (isNaN(d.getTime())) return '-';
+      return format(d, 'dd-MMM-yyyy HH:mm:ss');
+    } catch {
+      return '-';
+    }
+  };
+
+  const renderDetails = (details: any) => {
+    if (!details) return '-';
+    if (typeof details === 'string') return details;
+    if (typeof details === 'object') {
+      if (details.message) return String(details.message);
+      if (details.email) return `Email: ${details.email}`;
+      if (details.name) return `Name: ${details.name}`;
+      try {
+        const entries = Object.entries(details);
+        if (entries.length === 0) return '-';
+        return entries
+          .map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : String(v)}`)
+          .join(', ');
+      } catch {
+        return JSON.stringify(details);
+      }
+    }
+    return String(details);
+  };
+
+  const getActionBadgeClass = (action?: string | null) => {
+    if (!action || typeof action !== 'string') return 'bg-slate-100 text-slate-700 border-slate-200';
+    if (action.includes('LOGIN')) return 'bg-sky-50 text-sky-700 border-sky-200';
+    if (action.includes('CREATE') || action.includes('FINALIZED')) return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+    if (action.includes('UPDATE')) return 'bg-amber-50 text-amber-700 border-amber-200';
+    if (action.includes('DELETE') || action.includes('PURGE')) return 'bg-rose-50 text-rose-700 border-rose-200';
+    return 'bg-slate-100 text-slate-700 border-slate-200';
+  };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<any>(null);
@@ -129,13 +218,24 @@ export default function AdminUsersPage() {
           </p>
         </div>
 
-        <button
-          onClick={handleOpenCreate}
-          className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm shadow-blue-600/20 transition-all active:scale-95 cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          <span>New User Account</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => handleOpenLogs()}
+            className="inline-flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm transition-all active:scale-95 cursor-pointer"
+          >
+            <History className="w-4 h-4 text-blue-400" />
+            <span>Log History</span>
+          </button>
+
+          <button
+            onClick={handleOpenCreate}
+            className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm shadow-blue-600/20 transition-all active:scale-95 cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>New User Account</span>
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -199,10 +299,17 @@ export default function AdminUsersPage() {
                         <span>{u.active ? 'ACTIVE' : 'INACTIVE'}</span>
                       </button>
                     </td>
-                    <td className="px-4 py-3 text-right whitespace-nowrap">
+                    <td className="px-4 py-3 text-right whitespace-nowrap space-x-1">
+                      <button
+                        onClick={() => handleOpenLogs(u.id)}
+                        className="p-1 rounded hover:bg-slate-100 text-slate-500 hover:text-blue-600 transition-colors inline-block"
+                        title="View Log History"
+                      >
+                        <History className="w-4 h-4" />
+                      </button>
                       <button
                         onClick={() => handleOpenEdit(u)}
-                        className="p-1 rounded hover:bg-slate-100 text-slate-600 hover:text-blue-600 transition-colors"
+                        className="p-1 rounded hover:bg-slate-100 text-slate-600 hover:text-blue-600 transition-colors inline-block"
                         title="Edit User"
                       >
                         <Edit className="w-4 h-4" />
@@ -216,7 +323,7 @@ export default function AdminUsersPage() {
         </div>
       </div>
 
-      {/* Modal */}
+      {/* Modal for Create/Edit User */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden flex flex-col">
@@ -331,6 +438,177 @@ export default function AdminUsersPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Log History Modal */}
+      {isLogModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-4xl max-h-[88vh] overflow-hidden flex flex-col">
+            {/* Modal Header */}
+            <div className="p-4 border-b border-slate-200 bg-slate-900 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center">
+                  <History className="w-4 h-4 text-blue-400" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-white">User Activity & Audit Log History</h2>
+                  <p className="text-[11px] text-slate-400">
+                    Chronological activity tracking of authentications, estimations, and master updates.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsLogModalOpen(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Filter Bar with Dropdown to select User */}
+            <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 text-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 flex-1">
+                <span className="font-bold text-slate-700 whitespace-nowrap font-mono uppercase text-[11px]">
+                  Select User:
+                </span>
+                <select
+                  value={selectedLogUserId}
+                  onChange={(e) => {
+                    const newId = e.target.value;
+                    setSelectedLogUserId(newId);
+                    fetchUserLogs(newId);
+                  }}
+                  className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1 max-w-md"
+                >
+                  <option value="">-- All Users (System-wide History) --</option>
+                  {users.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.name} ({u.email}) — [{u.role}]
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2 self-end sm:self-auto">
+                <span className="text-[11px] font-mono font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                  {userLogs.length} events logged
+                </span>
+                <button
+                  type="button"
+                  onClick={() => fetchUserLogs(selectedLogUserId)}
+                  className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-600 transition-colors"
+                  title="Refresh Log History"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${loadingLogs ? 'animate-spin text-blue-600' : ''}`} />
+                </button>
+              </div>
+            </div>
+
+            {/* Selected User Header Card (if user is picked) */}
+            {selectedLogUser && (
+              <div className="px-5 py-3 bg-blue-50/50 border-b border-blue-100 flex items-center justify-between text-xs">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs">
+                    {(selectedLogUser.name || 'US').slice(0, 2).toUpperCase()}
+                  </div>
+                  <div>
+                    <strong className="text-slate-900 block font-bold text-xs">{selectedLogUser.name}</strong>
+                    <span className="text-slate-500 font-mono text-[11px]">{selectedLogUser.email}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="px-2 py-0.5 rounded font-mono font-bold text-[10px] bg-slate-200/70 text-slate-700">
+                    ROLE: {selectedLogUser.role}
+                  </span>
+                  <span className={`px-2 py-0.5 rounded font-mono font-bold text-[10px] ${selectedLogUser.active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'}`}>
+                    {selectedLogUser.active ? 'ACTIVE' : 'INACTIVE'}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Log History Table */}
+            <div className="flex-1 overflow-y-auto p-4">
+              {loadingLogs ? (
+                <div className="py-16 text-center text-slate-500 text-xs">
+                  <Loader2 className="w-6 h-6 animate-spin text-blue-600 mx-auto mb-2" />
+                  <span>Loading user history records...</span>
+                </div>
+              ) : userLogs.length === 0 ? (
+                <div className="py-16 text-center text-slate-500 space-y-2">
+                  <History className="w-8 h-8 text-slate-300 mx-auto" />
+                  <p className="text-xs font-semibold text-slate-700">No activity logs recorded yet</p>
+                  <p className="text-[11px] text-slate-400">
+                    Actions performed by this user will automatically be tracked here.
+                  </p>
+                </div>
+              ) : (
+                <div className="border border-slate-200 rounded-xl overflow-hidden">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-50 text-slate-600 font-mono text-[10px] uppercase border-b border-slate-200">
+                      <tr>
+                        <th className="px-3.5 py-2.5">Timestamp</th>
+                        {!selectedLogUserId && <th className="px-3.5 py-2.5">User</th>}
+                        <th className="px-3.5 py-2.5">Action Event</th>
+                        <th className="px-3.5 py-2.5">Target Entity</th>
+                        <th className="px-3.5 py-2.5">Activity Details</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {userLogs.map((log) => (
+                        <tr key={log.id} className="hover:bg-slate-50/70 transition-colors">
+                          <td className="px-3.5 py-2.5 font-mono text-slate-500 whitespace-nowrap text-[11px]">
+                            {formatTimestamp(log.createdAt)}
+                          </td>
+                          {!selectedLogUserId && (
+                            <td className="px-3.5 py-2.5 font-medium text-slate-900 whitespace-nowrap">
+                              {log.user?.name || log.user?.email || 'System'}
+                            </td>
+                          )}
+                          <td className="px-3.5 py-2.5 whitespace-nowrap">
+                            <span
+                              className={`inline-block px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${getActionBadgeClass(
+                                log.action
+                              )}`}
+                            >
+                              {String(log.action || 'EVENT')}
+                            </span>
+                          </td>
+                          <td className="px-3.5 py-2.5 font-mono text-slate-600 whitespace-nowrap text-[11px]">
+                            {String(log.entity || '-')}
+                            {log.entityId && (
+                              <span className="text-slate-400 ml-1">
+                                ({typeof log.entityId === 'string' ? log.entityId.slice(0, 8) : String(log.entityId).slice(0, 8)}...)
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-3.5 py-2.5 text-slate-700 text-[11px] max-w-md break-words">
+                            {renderDetails(log.details)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs">
+              <span className="text-[11px] text-slate-500">
+                Audited with SHA-256 integrity logs &bull; Preserved across system restarts.
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsLogModalOpen(false)}
+                className="px-4 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 font-semibold text-slate-700 text-xs transition-colors"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

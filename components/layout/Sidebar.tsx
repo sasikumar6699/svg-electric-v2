@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import {
   LayoutDashboard,
   Box,
@@ -11,6 +11,10 @@ import {
   Search,
   Tag,
   ShieldCheck,
+  SlidersHorizontal,
+  Boxes,
+  Layers,
+  FileSpreadsheet,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -19,16 +23,61 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const currentTab = searchParams.get('tab');
 
   const salesNavItems = [
-    { name: 'Product Search & Pricing', href: '/dashboard', icon: Search },
+    {
+      name: 'Search Products & Variants',
+      href: '/sales/configurator',
+      icon: Search,
+      isActive: pathname === '/sales/configurator' && currentTab !== 'history',
+    },
+    {
+      name: 'Recent Estimations',
+      href: '/sales/configurator?tab=history',
+      icon: FileSpreadsheet,
+      isActive: (pathname === '/sales/configurator' && currentTab === 'history') || pathname.startsWith('/estimations'),
+    },
   ];
 
   const adminNavItems = [
-    { name: 'Dashboard Overview', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Product Management', href: '/admin/products', icon: Box },
-    { name: 'User Management', href: '/admin/users', icon: UserCog },
-    { name: 'Company Settings', href: '/admin/settings', icon: Settings },
+    {
+      name: 'Dashboard Overview',
+      href: '/dashboard',
+      icon: LayoutDashboard,
+      isActive: pathname === '/dashboard',
+    },
+    {
+      name: 'Product Catalog',
+      href: '/admin/finished-goods',
+      icon: Boxes,
+      isActive: pathname.startsWith('/admin/finished-goods'),
+    },
+    {
+      name: 'Price Master (Raw Materials)',
+      href: '/admin/price-master',
+      icon: Layers,
+      isActive: pathname.startsWith('/admin/price-master'),
+    },
+    {
+      name: 'Panel Upgradations',
+      href: '/admin/panel-upgradations',
+      icon: SlidersHorizontal,
+      isActive: pathname.startsWith('/admin/panel-upgradations'),
+    },
+    {
+      name: 'User Management',
+      href: '/admin/users',
+      icon: UserCog,
+      isActive: pathname.startsWith('/admin/users'),
+    },
+    {
+      name: 'Company Settings',
+      href: '/admin/settings',
+      icon: Settings,
+      isActive: pathname.startsWith('/admin/settings'),
+    },
   ];
 
   return (
@@ -51,7 +100,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {
               SVG ELECTRIC
             </h1>
             <p className="text-[10px] font-semibold text-blue-400 font-mono tracking-wider uppercase leading-tight mt-0.5 whitespace-nowrap">
-              Price & Product Finder
+              Switchboard Estimation Suite
             </p>
             <p className="text-[9px] text-slate-400 font-sans tracking-wide leading-none mt-1 whitespace-nowrap">
               Control Products
@@ -71,7 +120,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {
             <nav className="space-y-1">
               {salesNavItems.map((item) => {
                 const Icon = item.icon;
-                const isActive = pathname === item.href;
+                const isActive = item.isActive;
                 return (
                   <Link
                     key={item.href}
@@ -103,7 +152,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {
             <nav className="space-y-1">
               {adminNavItems.map((item) => {
                 const Icon = item.icon;
-                const isActive = pathname === item.href;
+                const isActive = item.isActive;
                 return (
                   <Link
                     key={item.href}
@@ -124,8 +173,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {
         )}
       </div>
 
-      {/* Role Footer */}
-      <div className="p-3.5 border-t border-slate-800 bg-slate-950/40 text-xs">
+      {/* Enterprise Provenance & Role Footer */}
+      <div className="p-3.5 border-t border-slate-800 bg-slate-950/60 text-xs space-y-2">
         <div className="flex items-center justify-between text-[11px] text-slate-400">
           <span>Logged in as:</span>
           <span
@@ -137,6 +186,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {
           >
             {userRole === 'ADMIN' ? 'ADMINISTRATOR' : 'SALES USER'}
           </span>
+        </div>
+        <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[9px] font-mono text-slate-400">
+          <span className="flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+            v3.2.0-PROD
+          </span>
+          <span className="text-slate-400 font-sans">Build 2026.10-Enterprise</span>
         </div>
       </div>
     </aside>

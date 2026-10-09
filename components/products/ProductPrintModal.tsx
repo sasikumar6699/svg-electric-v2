@@ -293,7 +293,7 @@ export const ProductPrintModal: React.FC<ProductPrintModalProps> = ({
                   <p>
                     {includePrice
                       ? 'The pricing stated is valid for 30 days from issue date. Subject to SVG Electric standard terms and conditions.'
-                      : 'This document represents an unpriced technical submittal. For commercial quotation and delivery lead times, please contact the sales desk.'}
+                      : 'This document represents an unpriced technical submittal. For commercial estimation and delivery lead times, please contact the sales desk.'}
                   </p>
                 </div>
               </div>

@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import QRCode from 'qrcode';
 import { numberToIndianWords } from '@/lib/utils';
 import { format } from 'date-fns';
 import fs from 'fs';
@@ -73,9 +74,7 @@ export interface EstimationPDFData {
 }
 
 /**
- * Formats currency amounts as "Rs. 1,91,000.00" using pure ASCII characters.
- * This completely avoids the Type-1 PDF font glyph encoding issue where the Unicode ₹ symbol
- * was rendering as superscript "¹" and throwing off right-alignment text calculations.
+ * Formats currency amounts as "Rs. 1,91,000.00" using ASCII characters.
  */
 export function formatCurrencyPDF(amount: number | null | undefined): string {
   const val = typeof amount === 'number' && !isNaN(amount) ? amount : 0;
@@ -102,265 +101,193 @@ function getLogoBase64(): string | null {
         cachedLogoBase64 = `data:image/jpeg;base64,${buf.toString('base64')}`;
         return cachedLogoBase64;
       } catch (e) {
-        // ignore and fallback
+        // fallback
       }
     }
   }
   return null;
 }
 
-export function generateEstimationPDF(data: EstimationPDFData): Buffer {
+export async function generateEstimationPDF(data: EstimationPDFData): Promise<Buffer> {
+  // Digital Verification QR Code Generation (placed on top right)
+  const qrVerifyUrl = `https://svgelectric.com/verify?est=${encodeURIComponent(data.estimationNumber)}&val=${encodeURIComponent(String(data.financials.grandTotal))}`;
+  let qrDataUrl = '';
+  try {
+    qrDataUrl = await QRCode.toDataURL(qrVerifyUrl, {
+      width: 140,
+      margin: 1,
+      color: { dark: '#0B2545', light: '#FFFFFF' },
+      errorCorrectionLevel: 'M',
+    });
+  } catch (e) {
+    console.warn('QR generation fallback:', e);
+  }
+
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
     format: 'a4',
   });
 
-  // Set Times New Roman as primary default font family
   doc.setFont('times', 'normal');
 
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 14;
-  let currentY = 13;
 
-  // Helper for drawing clean underlined text
-  const drawUnderlinedText = (
-    text: string,
-    x: number,
-    y: number,
-    fontSize: number,
-    fontStyle: 'bold' | 'normal' | 'italic' = 'bold',
-    color: [number, number, number] = [11, 37, 69]
-  ) => {
-    doc.setFont('times', fontStyle);
-    doc.setFontSize(fontSize);
-    doc.setTextColor(...color);
-    doc.text(text, x, y);
-    const textWidth = doc.getTextWidth(text);
-    doc.setDrawColor(...color);
-    doc.setLineWidth(0.3);
-    doc.line(x, y + 0.8, x + textWidth, y + 0.8);
-  };
+  // --- TOP ACCENT BARS ---
+  doc.setFillColor(11, 37, 69); // Deep Navy
+  doc.rect(0, 0, pageWidth, 5.0, 'F');
+  doc.setFillColor(220, 38, 38); // Red
+  doc.rect(0, 5.0, pageWidth, 1.2, 'F');
 
-  // --- TOP BRAND ACCENT BARS ---
-  // Deep Navy top bar
-  doc.setFillColor(11, 37, 69); // #0B2545 deep navy
-  doc.rect(0, 0, pageWidth, 5.5, 'F');
-  // ElectCare Red accent bar
-  doc.setFillColor(220, 38, 38); // #DC2626 bright red matching logo
-  doc.rect(0, 5.5, pageWidth, 1.5, 'F');
+  let currentY = 10.5;
 
-  // --- BRAND HEADER BLOCK (2-Column Segregated Layout with Logo) ---
-  const col1Left = margin; // 14mm
-  const col2Left = margin + 118; // 132mm
-  const col2Width = pageWidth - margin - col2Left; // 64mm (ends at 196mm)
-
+  // =========================================================================
+  // TOP HEADER: SVG Name & Address (LEFT-ALIGNED) and QR Code (RIGHT-ALIGNED)
+  // =========================================================================
   const logoData = getLogoBase64();
-  let textLeft = col1Left;
-  let textWidth = 114;
+  let textLeft = margin;
+  const qrSize = 21;
+  const qrX = pageWidth - margin - qrSize;
 
   if (logoData) {
-    const logoWidth = 38;
-    const logoHeight = 20.6; // 38mm / 1.842 aspect ratio
-    doc.addImage(logoData, 'JPEG', col1Left, currentY + 1.5, logoWidth, logoHeight);
-    textLeft = col1Left + logoWidth + 4; // 14 + 38 + 4 = 56mm
-    textWidth = col2Left - textLeft - 3; // 132 - 56 - 3 = 73mm
+    const logoWidth = 32;
+    const logoHeight = 17.4;
+    doc.addImage(logoData, 'JPEG', margin, currentY + 0.5, logoWidth, logoHeight);
+    textLeft = margin + logoWidth + 4;
   }
 
-  // Company Details next to logo (or full left column if logo absent)
+  // Company Name (Left-Aligned)
   doc.setFont('times', 'bold');
-  doc.setFontSize(logoData ? 12 : 15);
+  doc.setFontSize(13);
   doc.setTextColor(11, 37, 69);
-  const compNameLines = doc.splitTextToSize(data.company.companyName.toUpperCase(), textWidth);
-  doc.text(compNameLines, textLeft, currentY + 4);
-  let compY = currentY + 4 + compNameLines.length * 4.2;
+  doc.text(data.company.companyName.toUpperCase(), textLeft, currentY + 3.5);
 
-  if (data.company.tagline) {
-    doc.setFont('times', 'italic');
-    doc.setFontSize(7.5);
-    doc.setTextColor(71, 85, 105);
-    const tagLines = doc.splitTextToSize(data.company.tagline, textWidth);
-    doc.text(tagLines, textLeft, compY);
-    compY += tagLines.length * 3.3;
-  }
-
+  // Address & Contacts (Left-Aligned)
   doc.setFont('times', 'normal');
   doc.setFontSize(7.2);
   doc.setTextColor(51, 65, 85);
-  const addrLines = doc.splitTextToSize(data.company.address, textWidth);
-  doc.text(addrLines, textLeft, compY);
-  compY += addrLines.length * 3.2;
-
-  const contactText = `Phone: ${data.company.phone} | Email: ${data.company.email}`;
-  const contactLines = doc.splitTextToSize(contactText, textWidth);
-  doc.text(contactLines, textLeft, compY);
-  compY += contactLines.length * 3.2;
+  doc.text(data.company.address, textLeft, currentY + 7.5);
+  doc.text(
+    `Phone: ${data.company.phone}   |   Email: ${data.company.email}   |   Web: ${data.company.website}`,
+    textLeft,
+    currentY + 11.2
+  );
 
   doc.setFont('times', 'bold');
-  doc.setFontSize(7.8);
+  doc.setFontSize(7.5);
   doc.setTextColor(15, 23, 42);
-  doc.text(`GSTIN: ${data.company.gstin}`, textLeft, compY);
-  compY += 3.8;
+  doc.text(`GSTIN: ${data.company.gstin}`, textLeft, currentY + 15.0);
 
-  // Right Column: Segregated Estimation Badge Box
-  const estBoxY = 13;
-  const estBoxHeight = 26;
-  doc.setFillColor(248, 250, 252);
-  doc.setDrawColor(203, 213, 225);
-  doc.setLineWidth(0.4);
-  doc.roundedRect(col2Left, estBoxY, col2Width, estBoxHeight, 2, 2, 'FD');
-
-  // Header strip inside badge
-  doc.setFillColor(11, 37, 69);
-  doc.roundedRect(col2Left, estBoxY, col2Width, 7.5, 2, 2, 'F');
-  doc.rect(col2Left, estBoxY + 4, col2Width, 3.5, 'F'); // flatten lower corners
-
-  const badgeCenterX = col2Left + col2Width / 2;
-  doc.setFont('times', 'bold');
-  doc.setFontSize(10.5);
-  doc.setTextColor(255, 255, 255);
-  doc.text('ESTIMATION', badgeCenterX, estBoxY + 5.2, { align: 'center' });
-
-  doc.setFont('times', 'bold');
-  doc.setFontSize(8.5);
-  doc.setTextColor(15, 23, 42);
-  doc.text(`No: ${data.estimationNumber}`, badgeCenterX, estBoxY + 13.5, { align: 'center' });
-
-  const estDate = data.date instanceof Date ? data.date : new Date(data.date);
-  doc.setFont('times', 'italic');
-  doc.setFontSize(7.8);
-  doc.setTextColor(71, 85, 105);
-  doc.text(`Date: ${format(estDate, 'dd-MMM-yyyy')}`, badgeCenterX, estBoxY + 18.5, { align: 'center' });
-
-  if (data.validityDays) {
-    doc.setFont('times', 'normal');
-    doc.setFontSize(7.5);
-    doc.text(`Validity: ${data.validityDays} Days`, badgeCenterX, estBoxY + 23, { align: 'center' });
+  // QR Code (Right-Aligned)
+  if (qrDataUrl) {
+    doc.addImage(qrDataUrl, 'PNG', qrX, currentY, qrSize, qrSize);
+    doc.setFont('times', 'bold');
+    doc.setFontSize(4.6);
+    doc.setTextColor(11, 37, 69);
+    doc.text('SCAN TO VERIFY', qrX + qrSize / 2, currentY + qrSize + 2.5, { align: 'center' });
   }
 
-  currentY = Math.max(compY + 2, estBoxY + estBoxHeight + 3.5);
+  currentY = Math.max(currentY + 18, currentY + qrSize + 4.5);
 
   // Divider Line
-  doc.setDrawColor(226, 232, 240);
-  doc.setLineWidth(0.5);
+  doc.setDrawColor(203, 213, 225);
+  doc.setLineWidth(0.4);
   doc.line(margin, currentY, pageWidth - margin, currentY);
+
   currentY += 4;
 
-  // --- CUSTOMER / BILL TO BLOCK (Estimation details box removed) ---
-  const custBoxWidth = pageWidth - margin * 2; // 182mm
-  const custBoxHeight = 26;
+  // =========================================================================
+  // HEADING: COMMERCIAL ESTIMATION & SPECIFICATION SUMMARY
+  // =========================================================================
+  const ribbonHeight = 7.5;
+  doc.setFillColor(241, 245, 249);
+  doc.setDrawColor(203, 213, 225);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(margin, currentY, pageWidth - margin * 2, ribbonHeight, 1, 1, 'FD');
 
-  doc.setFillColor(248, 250, 252);
-  doc.setDrawColor(226, 232, 240);
-  doc.setLineWidth(0.4);
-  doc.roundedRect(margin, currentY, custBoxWidth, custBoxHeight, 1.5, 1.5, 'FD');
-
-  // Customer header with clean underline
-  drawUnderlinedText('CUSTOMER / BILL TO:', margin + 4, currentY + 5.5, 8.5, 'bold', [11, 37, 69]);
-
-  // Left column of Customer card: Company Name, Attn, Address
   doc.setFont('times', 'bold');
   doc.setFontSize(9.5);
-  doc.setTextColor(15, 23, 42);
-  doc.text(data.customer.companyName, margin + 4, currentY + 11);
-
-  doc.setFont('times', 'italic');
-  doc.setFontSize(8);
-  doc.setTextColor(71, 85, 105);
-  let custLineY = currentY + 15.5;
-  if (data.customer.contactPerson) {
-    doc.text(`Attn: ${data.customer.contactPerson}`, margin + 4, custLineY);
-    custLineY += 4.2;
-  }
-  doc.setFont('times', 'normal');
-  doc.setFontSize(7.8);
-  const splitCustAddress = doc.splitTextToSize(data.customer.address, 115);
-  doc.text(splitCustAddress, margin + 4, custLineY);
-
-  // Right column of Customer card: GSTIN, State, Contact, Reference RFQ
-  const custRightX = margin + 122;
-  doc.setFont('times', 'bold');
-  doc.setFontSize(8.2);
-  doc.setTextColor(15, 23, 42);
-  doc.text(`GSTIN: ${data.customer.gstin || 'Unregistered / Not Provided'}`, custRightX, currentY + 11);
+  doc.setTextColor(11, 37, 69);
+  doc.text('COMMERCIAL ESTIMATION & SPECIFICATION SUMMARY', margin + 3.5, currentY + 5.2);
 
   doc.setFont('times', 'normal');
   doc.setFontSize(7.8);
   doc.setTextColor(71, 85, 105);
-  if (data.customer.state) {
-    doc.text(`State: ${data.customer.state}`, custRightX, currentY + 15.5);
-  }
-  if (data.customer.phone) {
-    doc.text(`Phone: ${data.customer.phone}`, custRightX, currentY + 19.8);
-  }
-  if (data.referenceNumber) {
-    doc.setFont('times', 'italic');
-    doc.text(`Ref / RFQ: ${data.referenceNumber}`, custRightX, currentY + 23.8);
-  }
+  const estDate = data.date instanceof Date ? data.date : new Date(data.date);
+  const quoteRef = `Ref: ${data.estimationNumber}`;
+  const quoteDate = `Date: ${format(estDate, 'dd-MMM-yyyy')}`;
+  doc.text(`${quoteRef}   |   ${quoteDate}`, pageWidth - margin - 3.5, currentY + 5.2, { align: 'right' });
 
-  currentY += custBoxHeight + 5;
+  currentY += ribbonHeight + 4.5;
 
-  // --- ITEMS TABLE ---
-  // Specifications displayed in clean bulletin format WITHOUT individual prices
-  const tableData = data.items.map((item) => {
-    const specsFormatted = item.specifications
-      .map((s) => `  •  ${s.name}: ${s.value}`)
-      .join('\n');
-
-    const descCell = `${item.productName.toUpperCase()}\n[Item Code: ${item.productCode} | ${item.category}]\n\nTechnical Specifications:\n${specsFormatted}`;
-
-    const unitPriceDisplay = `${formatCurrencyPDF(item.unitPrice)}${item.isManualPrice ? '\n(Manual Rate)' : ''}`;
+  // =========================================================================
+  // TABLE: Columns -> S. No | Product ID | Description | Base Price
+  // =========================================================================
+  const tableData = data.items.map((item, idx) => {
+    let descLines: string[] = [item.productName.toUpperCase()];
+    if (item.category) {
+      descLines.push(`Category: ${item.category}`);
+    }
+    if (item.specifications && item.specifications.length > 0) {
+      descLines.push('');
+      descLines.push('Technical Specifications & Options:');
+      item.specifications.forEach((s) => {
+        const pDelta = s.price && s.price > 0 ? ` (+ ${formatCurrencyPDF(s.price)})` : '';
+        descLines.push(`  • ${s.name}: ${s.value}${pDelta}`);
+      });
+    }
 
     return [
-      item.sNo.toString(),
-      descCell,
-      item.quantity.toString(),
-      unitPriceDisplay,
-      formatCurrencyPDF(item.lineTotal),
+      (idx + 1).toString(),
+      item.productCode || `P-${item.sNo}`,
+      descLines.join('\n'),
+      formatCurrencyPDF(item.unitPrice),
     ];
   });
 
   autoTable(doc, {
     startY: currentY,
-    head: [['S.No', 'Description & Technical Specifications', 'Qty', 'Unit Price', 'Amount']],
+    margin: { left: margin, right: margin },
+    head: [['S. No', 'Product ID', 'Description', 'Base Price']],
     body: tableData,
     theme: 'grid',
-    tableWidth: 182,
     headStyles: {
-      font: 'times',
       fillColor: [11, 37, 69],
       textColor: [255, 255, 255],
-      fontSize: 8.5,
-      fontStyle: 'bold',
-      halign: 'center', // Single line and center aligned for all headers!
-      valign: 'middle',
-      cellPadding: { top: 3.5, bottom: 3.5, left: 2, right: 2 },
-    },
-    styles: {
       font: 'times',
-      fontSize: 7.8,
-      cellPadding: { top: 3.5, bottom: 3.5, left: 3, right: 4 },
+      fontStyle: 'bold',
+      fontSize: 8,
+      halign: 'center',
+      cellPadding: { top: 3, bottom: 3, left: 2, right: 2 },
+    },
+    bodyStyles: {
+      font: 'times',
+      fontSize: 7.6,
       textColor: [30, 41, 59],
+      cellPadding: { top: 3.5, bottom: 3.5, left: 3, right: 3 },
       valign: 'top',
       overflow: 'linebreak',
     },
     columnStyles: {
-      0: { cellWidth: 12, halign: 'center', fontStyle: 'bold' },
-      1: { cellWidth: 94, halign: 'left' },
-      2: { cellWidth: 14, halign: 'center', fontStyle: 'bold' },
-      3: { cellWidth: 31, halign: 'right', fontStyle: 'bold' },
-      4: { cellWidth: 31, halign: 'right', fontStyle: 'bold' },
+      0: { cellWidth: 14, halign: 'center', fontStyle: 'bold' },
+      1: { cellWidth: 36, halign: 'center', fontStyle: 'bold' },
+      2: { cellWidth: 97, halign: 'left' },
+      3: { cellWidth: 35, halign: 'right', fontStyle: 'bold' },
     },
-    margin: { left: margin, right: margin },
   });
 
-  currentY = (doc as any).lastAutoTable.finalY + 4;
+  currentY = (doc as any).lastAutoTable.finalY + 6;
 
-  // --- FINANCIAL TOTALS & AMOUNT IN WORDS BLOCK ---
-  const hasDiscount = (data.financials.discountAmount || 0) > 0;
-  const hasInstallation = (data.financials.installationAmount || 0) > 0;
-  const hasFreight = (data.financials.freightAmount || 0) > 0;
+  // =========================================================================
+  // BELOW TABLE:
+  // LEFT: Amount in words
+  // RIGHT: Total estimation value with all variants and tax calculations
+  // =========================================================================
+  const summaryWidth = 86;
+  const summaryX = pageWidth - margin - summaryWidth;
+  const wordsWidth = summaryX - margin - 6;
   const isIntra = data.financials.taxType === 'INTRA_STATE';
 
   interface SummaryRow {
@@ -371,10 +298,10 @@ export function generateEstimationPDF(data: EstimationPDFData): Buffer {
   }
 
   const summaryRows: SummaryRow[] = [
-    { label: 'Subtotal (Line Items):', amount: formatCurrencyPDF(data.financials.subtotal) },
+    { label: 'Subtotal (Base Items):', amount: formatCurrencyPDF(data.financials.subtotal) },
   ];
 
-  if (hasDiscount) {
+  if ((data.financials.discountAmount || 0) > 0) {
     summaryRows.push({
       label: `Discount (${data.financials.discountPercent}%):`,
       amount: `- ${formatCurrencyPDF(data.financials.discountAmount)}`,
@@ -382,30 +309,22 @@ export function generateEstimationPDF(data: EstimationPDFData): Buffer {
     });
   }
 
-  if (hasInstallation) {
-    const label =
-      data.financials.installationType === 'PERCENTAGE'
-        ? `Installation & Comm. (${data.financials.installationRate}%):`
-        : 'Installation & Comm. (Fixed):';
+  if ((data.financials.installationAmount || 0) > 0) {
     summaryRows.push({
-      label,
-      amount: `+ ${formatCurrencyPDF(data.financials.installationAmount || 0)}`,
+      label: 'Installation & Testing:',
+      amount: `+ ${formatCurrencyPDF(data.financials.installationAmount)}`,
     });
   }
 
-  if (hasFreight) {
-    const label =
-      data.financials.freightType === 'PERCENTAGE'
-        ? `Freight & Transit (${data.financials.freightRate}%):`
-        : 'Freight & Transit (Fixed):';
+  if ((data.financials.freightAmount || 0) > 0) {
     summaryRows.push({
-      label,
-      amount: `+ ${formatCurrencyPDF(data.financials.freightAmount || 0)}`,
+      label: 'Freight & Transit:',
+      amount: `+ ${formatCurrencyPDF(data.financials.freightAmount)}`,
     });
   }
 
   summaryRows.push({
-    label: 'Taxable Assessable Value:',
+    label: 'Net Ex-Works Taxable Value:',
     amount: formatCurrencyPDF(data.financials.taxableAmount),
     isBold: true,
   });
@@ -426,142 +345,102 @@ export function generateEstimationPDF(data: EstimationPDFData): Buffer {
     });
   }
 
-  const rowHeight = 5.2;
-  const grandTotalHeight = 9.0;
-  const boxTopPadding = 3.0;
-  const totalBoxHeight = boxTopPadding + summaryRows.length * rowHeight + grandTotalHeight;
+  const rowHeight = 4.6;
+  const grandTotalHeight = 8.5;
+  const summaryBoxHeight = 5 + summaryRows.length * rowHeight + grandTotalHeight;
 
-  // Check if financial summary fits on page or needs new page
-  if (currentY + totalBoxHeight + 35 > pageHeight) {
+  // Check if box fits on page
+  if (currentY + summaryBoxHeight + 25 > pageHeight) {
     doc.addPage();
-    currentY = 20;
+    currentY = 16;
   }
 
-  const summaryWidth = 88;
-  const summaryX = pageWidth - margin - summaryWidth; // 108mm
-  const rightPriceX = summaryX + summaryWidth - 6.0; // 6mm safely inside the right border to ensure zero overflow
-
-  // Draw Financial Summary Container Box
+  // Left Box: Amount in Words
   doc.setFillColor(248, 250, 252);
   doc.setDrawColor(203, 213, 225);
   doc.setLineWidth(0.4);
-  doc.roundedRect(summaryX, currentY, summaryWidth, totalBoxHeight, 1.5, 1.5, 'FD');
-
-  // Render individual summary rows
-  for (let i = 0; i < summaryRows.length; i++) {
-    const row = summaryRows[i];
-    const rowY = currentY + boxTopPadding + i * rowHeight + 3.8;
-
-    doc.setFont('times', row.isBold ? 'bold' : 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(row.isBold ? 11 : 71, row.isBold ? 37 : 85, row.isBold ? 69 : 105);
-    doc.text(row.label, summaryX + 5, rowY);
-
-    if (row.isDeduction) {
-      doc.setTextColor(185, 28, 28);
-    }
-    doc.text(row.amount, rightPriceX, rowY, { align: 'right' });
-  }
-
-  // Grand Total Highlight Bar (Sits completely inside the bottom of the box)
-  const grandTotalY = currentY + totalBoxHeight - grandTotalHeight;
-  doc.setFillColor(11, 37, 69);
-  doc.rect(summaryX, grandTotalY, summaryWidth, grandTotalHeight, 'F');
+  doc.roundedRect(margin, currentY, wordsWidth, summaryBoxHeight, 1.5, 1.5, 'FD');
 
   doc.setFont('times', 'bold');
-  doc.setFontSize(9.5);
-  doc.setTextColor(255, 255, 255);
-  doc.text('GRAND TOTAL:', summaryX + 5, grandTotalY + 5.8);
-  doc.text(formatCurrencyPDF(data.financials.grandTotal), rightPriceX, grandTotalY + 5.8, { align: 'right' });
-
-  // Amount In Words Box on Left Side (Symmetrical height)
-  const wordsBoxWidth = summaryX - margin - 5;
-  const wordsBoxHeight = totalBoxHeight;
-
-  doc.setFillColor(248, 250, 252);
-  doc.setDrawColor(203, 213, 225);
-  doc.setLineWidth(0.4);
-  doc.roundedRect(margin, currentY, wordsBoxWidth, wordsBoxHeight, 1.5, 1.5, 'FD');
-
-  drawUnderlinedText('AMOUNT IN WORDS (INR):', margin + 4, currentY + 6.0, 7.8, 'bold', [11, 37, 69]);
+  doc.setFontSize(7.8);
+  doc.setTextColor(11, 37, 69);
+  doc.text('AMOUNT IN WORDS (INR):', margin + 4, currentY + 5.5);
 
   doc.setFont('times', 'italic');
   doc.setFontSize(8.2);
   doc.setTextColor(15, 23, 42);
   const words = data.financials.amountInWords || numberToIndianWords(data.financials.grandTotal);
-  const splitWords = doc.splitTextToSize(words, wordsBoxWidth - 8);
-  doc.text(splitWords, margin + 4, currentY + 12.5);
+  const splitWords = doc.splitTextToSize(words, wordsWidth - 8);
+  doc.text(splitWords, margin + 4, currentY + 11.5);
 
-  currentY += totalBoxHeight + 6;
+  doc.setFont('times', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(100, 116, 139);
+  doc.text('Commercial estimation basis: Ex-Works Barur. Valid for 30 calendar days.', margin + 4, currentY + summaryBoxHeight - 4.5);
 
-  // Remarks if any
-  if (data.remarks) {
-    drawUnderlinedText('REMARKS:', margin, currentY, 8, 'bold', [11, 37, 69]);
-    currentY += 4;
-    doc.setFont('times', 'normal');
+  // Right Box: Total Estimation Value with Variants & Tax Calculations
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(203, 213, 225);
+  doc.setLineWidth(0.4);
+  doc.roundedRect(summaryX, currentY, summaryWidth, summaryBoxHeight, 1.5, 1.5, 'FD');
+
+  const rightTextX = summaryX + summaryWidth - 4;
+
+  for (let i = 0; i < summaryRows.length; i++) {
+    const row = summaryRows[i];
+    const rY = currentY + 4.8 + i * rowHeight;
+    doc.setFont('times', row.isBold ? 'bold' : 'normal');
     doc.setFontSize(7.5);
-    doc.setTextColor(71, 85, 105);
-    const splitRemarks = doc.splitTextToSize(data.remarks, pageWidth - margin * 2);
-    doc.text(splitRemarks, margin, currentY);
-    currentY += splitRemarks.length * 3.5 + 4;
+    doc.setTextColor(row.isBold ? 15 : 71, row.isBold ? 23 : 85, row.isBold ? 42 : 105);
+    doc.text(row.label, summaryX + 4, rY);
+
+    if (row.isDeduction) doc.setTextColor(185, 28, 28);
+    doc.text(row.amount, rightTextX, rY, { align: 'right' });
   }
 
-  // Terms and conditions
-  if (data.company.termsAndConditions) {
-    if (currentY + 35 > pageHeight) {
-      doc.addPage();
-      currentY = 20;
-    }
-    drawUnderlinedText('TERMS & CONDITIONS:', margin, currentY, 8.5, 'bold', [11, 37, 69]);
-    currentY += 4.5;
-    doc.setFont('times', 'normal');
-    doc.setFontSize(7.2);
-    doc.setTextColor(71, 85, 105);
-    const splitTerms = doc.splitTextToSize(data.company.termsAndConditions, pageWidth - margin * 2);
-    doc.text(splitTerms, margin, currentY);
-    currentY += splitTerms.length * 3.3 + 8;
-  }
-
-  // Authorized Signatory (Centered directly below company name)
-  if (currentY + 28 > pageHeight) {
-    doc.addPage();
-    currentY = 20;
-  }
-
-  const signBlockWidth = 70;
-  const signBlockX = pageWidth - margin - signBlockWidth;
-  const signCenterX = signBlockX + signBlockWidth / 2;
+  // Highlighted Total Bar
+  const totalBarY = currentY + summaryBoxHeight - grandTotalHeight;
+  doc.setFillColor(11, 37, 69);
+  doc.rect(summaryX, totalBarY, summaryWidth, grandTotalHeight, 'F');
 
   doc.setFont('times', 'bold');
   doc.setFontSize(8.5);
+  doc.setTextColor(255, 255, 255);
+  doc.text('TOTAL ESTIMATION VALUE:', summaryX + 4, totalBarY + 5.6);
+  doc.text(formatCurrencyPDF(data.financials.grandTotal), rightTextX, totalBarY + 5.6, { align: 'right' });
+
+  currentY += summaryBoxHeight + 8;
+
+  // =========================================================================
+  // BELOW THAT ON LEFT: AUTHORISED SIGNATORY (NO SEAL, NO COMMERCIAL CONDITIONS)
+  // =========================================================================
+  doc.setFont('times', 'bold');
+  doc.setFontSize(8.5);
   doc.setTextColor(11, 37, 69);
-  doc.text(`For ${data.company.companyName.toUpperCase()}`, signCenterX, currentY + 6, { align: 'center' });
+  doc.text(`For ${data.company.companyName.toUpperCase()}`, margin, currentY);
+
+  currentY += 18;
 
   doc.setFont('times', 'italic');
-  doc.setFontSize(7.5);
-  doc.setTextColor(100, 116, 139);
-  doc.text('(Authorized Signatory)', signCenterX, currentY + 24, { align: 'center' });
+  doc.setFontSize(7.8);
+  doc.setTextColor(71, 85, 105);
+  doc.text('(Authorised Signatory)', margin, currentY);
 
-  // Footer on all pages
+  // =========================================================================
+  // FOOTER ON ALL PAGES
+  // =========================================================================
   const totalPages = (doc as any).internal.getNumberOfPages();
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);
     doc.setFont('times', 'italic');
-    doc.setFontSize(7);
+    doc.setFontSize(6.8);
     doc.setTextColor(148, 163, 184);
-
     doc.text(
-      `This is a system generated technical & commercial estimation quotation. Subject to terms & conditions.`,
+      `${data.company.companyName}  •  Commercial Estimation & Specification Summary`,
       margin,
-      pageHeight - 7
+      pageHeight - 6
     );
-
-    doc.text(
-      `Page ${i} of ${totalPages}`,
-      pageWidth - margin,
-      pageHeight - 7,
-      { align: 'right' }
-    );
+    doc.text(`Page ${i} of ${totalPages}`, pageWidth - margin, pageHeight - 6, { align: 'right' });
   }
 
   return Buffer.from(doc.output('arraybuffer'));

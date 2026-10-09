@@ -4,8 +4,8 @@ cd /d %~dp0
 echo ====================================================
 echo Starting SVG Electric Estimation Management System...
 echo ====================================================
-echo Server will be available at: http://localhost:3000
+echo Server will be available at: http://localhost:3001 (or http://localhost:3000)
 echo.
 set NODE_TLS_REJECT_UNAUTHORIZED=0
-npm run dev
+npm run start -- -p 3001
 pause

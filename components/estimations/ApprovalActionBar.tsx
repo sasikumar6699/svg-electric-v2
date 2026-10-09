@@ -213,7 +213,7 @@ export function ApprovalActionBar({
                   {format(new Date(createdAt), 'dd MMM yyyy, hh:mm a')}.
                   {isAdmin
                     ? ' Please evaluate the technical specifications and commercial terms below before processing.'
-                    : ' This quotation is locked and currently awaiting review and sign-off by an Administrator.'}
+                    : ' This estimation is locked and currently awaiting review and sign-off by an Administrator.'}
                 </p>
               </div>
             </div>
@@ -340,7 +340,7 @@ export function ApprovalActionBar({
                 <p className="text-xs text-emerald-800 mt-1">
                   Authorized by <strong className="font-semibold text-emerald-950">{approverName || 'Administrator'}</strong>
                   {approvedAt && <> on {format(new Date(approvedAt), 'dd MMM yyyy, hh:mm a')}</>}.
-                  This quotation is formally approved for commercial release.
+                  This estimation is formally approved for commercial release.
                 </p>
                 {approvalRemarks && (
                   <p className="text-xs italic text-emerald-800 mt-1.5 bg-emerald-100/60 px-2.5 py-1 rounded border border-emerald-200/50">
@@ -427,7 +427,7 @@ export function ApprovalActionBar({
             <div className="text-xs text-slate-600">
               {modalType === 'reject' && (
                 <p>
-                  Please specify the reason for rejection. This quotation will be placed under{' '}
+                  Please specify the reason for rejection. This estimation will be placed under{' '}
                   <strong className="text-rose-700">Rejected Estimations</strong>.
                 </p>
               )}

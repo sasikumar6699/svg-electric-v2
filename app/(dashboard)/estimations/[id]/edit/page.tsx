@@ -340,7 +340,7 @@ export default function EditEstimationPage() {
               </div>
               <p className="text-[11px] text-amber-800 mt-2 font-medium">
                 Make your changes to the customer details, products, specifications, or pricing below, then click{' '}
-                <strong className="underline decoration-amber-500 font-bold">&quot;Resubmit for Admin Approval&quot;</strong> to return this quotation to management review.
+                <strong className="underline decoration-amber-500 font-bold">&quot;Resubmit for Admin Approval&quot;</strong> to return this estimation to management review.
               </p>
             </div>
           </div>

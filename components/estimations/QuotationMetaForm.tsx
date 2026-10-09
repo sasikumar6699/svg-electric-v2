@@ -28,7 +28,7 @@ export const QuotationMetaForm: React.FC<QuotationMetaFormProps> = ({
     <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
       <h2 className="text-xs font-bold font-mono text-slate-800 uppercase tracking-wider pb-3 border-b border-slate-100 flex items-center gap-2">
         <Calendar className="w-4 h-4 text-brand-600" />
-        <span>Quotation Meta</span>
+        <span>Estimation Meta</span>
       </h2>
 
       <div className="space-y-3 text-xs">
